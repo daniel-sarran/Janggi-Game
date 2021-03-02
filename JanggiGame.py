@@ -76,37 +76,17 @@ class JanggiGame:
 
     def __init__(self):
         """TODO"""
-        self._game_state = 'UNFINISHED'
-        self._turn = 'BLUE'
-        self._board = Board()
+        pass
 
     def get_game_state(self):
         """Returns a string of the current game state.
         Possible values are the strings "UNFINISHED", "RED_WON", or "BLUE_WON".
         """
-        return self._game_state
+        pass
 
     def set_game_state(self, state):
         """Takes in a string of current game state, updates game state to that state.
         Input is validated such that game state is either 1) unfinished 2) red has won 3) blue has won."""
-        if state not in {'UNFINISHED', 'BLUE_WON', 'RED_WON'}:
-            return False
-        self._game_state = state
-
-    def is_in_check(self, player):
-        """TODO"""
-        # Returns true if player is in check, returns false otherwise
-        pass
-
-    def is_checkmate(self, player):
-        """TODO"""
-        # 1. can move out of check?
-        # 2. can block check?
-        # 3. can take the attacker?
-        # The king has only 8 spots to move, check if each of those is in _attacked
-        # Should have list of squares that are movable, check if one of those blocks every attacker
-        # Check who is attacking the king by checking each enemy piece's attacked squares for the king's square
-        #   if there's only one attacker, and the attacker's square is in one of your piece's attacked squares, all set!
         pass
 
     def make_move(self, from_square, to_square):
@@ -127,8 +107,6 @@ class JanggiGame:
         # return False
 
         # The game has already been won
-        if self._game_state != 'UNFINISHED':
-            return False
 
         # Valid moves
 
@@ -152,18 +130,27 @@ class JanggiGame:
         # TODO: check for checkmate
         #   check if inactive player is in checkmate
 
-        self._end_turn()
+    def is_in_check(self, player):
+        """Takes a string representing the player. References whether the player's General's square is in the
+        '_attacked' list of squares. If so, returns True. Otherwise, returns False."""
+        pass
+
+    def is_checkmate(self, player):
+        """Takes a player"""
+        pass
+
+    def _is_valid_movement(self, from_square, to_square):
+        """Takes source and destination squares of an entered movement, returns Boolean value as to whether the move is
+        valid or not."""
+        pass
 
     def _end_turn(self):
-        if self._turn == 'BLUE':
-            self._turn = 'RED'
-
-        elif self._turn == 'RED':
-            self._turn = 'BLUE'
+        """Ends current player's turn."""
+        pass
 
     def get_turn(self):
         """Returns the player whose turn it is to make a move."""
-        return self._turn
+        pass
 
 
 class Board:
@@ -174,188 +161,164 @@ class Board:
 
     def __init__(self):
         """TODO"""
-        self._files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-        self._rows = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-        self._squares = list()
-        self._set_squares()
-        self._attacks_by = {'RED': [], 'BLUE': []}
+        pass
 
     def __str__(self):
-        rows = ''
-        for i in range(0, 80, 9):
-            rows += ' '.join(map(str, self._squares[i: i + 9]))
-            rows += '\n'
-        return rows
+        """TODO"""
+        pass
 
-    def _set_squares(self):
+    def _initial_squares_setup(self):
         """Initializes board square objects"""
-        for row in self._rows:
-            for file in self._files:
-                self._squares.extend([Square(file, row)])
+        pass
 
-    def _set_pieces(self):
+    def _initial_piece_setup(self):
         """TODO"""
         pass
 
     def is_attacked(self, square):
-        """TODO"""
-        return square in self._attacks_by
+        """Takes a square parameters, and determines whether it is currently threatened by an opponent's piece. If the
+        square is threatened, returns the square of the opponent's attacking piece. Otherwise returns False."""
+        pass
+
+    def update_attacked_squares(self, from_square, to_square):
+        """Takes source and destination square of a piece movement. References the piece's 'move_map' to determine all
+        squares threatened by piece type based on new location."""
+        pass
 
 
 class Square:
-    """TODO"""
+    """A class representing a single Square on the game board. Each square has information about its row and file, and
+    the piece on top of the square, if there is one."""
 
     def __init__(self, file, row, piece_obj=None):
         """TODO"""
-        self._file = file
-        self._row = row
-        self._piece = piece_obj
-        self._attacks = []  # attacks is a list of the squares tha
-
-    def __str__(self):
-        if self._piece:
-            return f'{self._piece}'
-        else:
-            return f'.'
-
-    def __repr__(self):
-        return f'{self._file}{self._row}'
-
-
-class Pieces:
-    """Class representing all piece locations on the board, as well as the addition and removal of pieces."""
-
-    def __init__(self):
-        """TODO"""
-        self._blue = dict()
-        self._red = dict()
-        self._all = set()
-
-    def set_piece_at(self, square, piece):
-        """Takes a square and a piece. Updates the piece on that square."""
-        # TODO: update piece location (but don't delete the old one)
         pass
 
-    def remove_piece_at(self, square, piece):
-        """Takes a square and a piece. Removes the piece from that square."""
-        # TODO: remove piece
+    def get_piece(self):
+        """Takes a string of a square, e.g. 'a1', and returns the piece object on that square, otherwise None."""
         pass
 
-    def get_all_piece_locations(self):
-        """TODO"""
-        return self._all
-
-    def blue_piece_locations(self):
-        """Returns locations of all blue pieces."""
-        return self._blue
-
-    def red_piece_locations(self):
-        """Returns locations of all red pieces."""
-
-    def find_piece_at_square(self, square):
-        """Takes a string representing a single board square, returns the piece object on that square."""
-        # TODO
-        pass
-
-    def reset(self):
-        """Resets all pieces to their starting locations on game board."""
-        # TODO
-        pass
-
-    def clear(self):
-        """Clears all pieces from game board."""
-        # TODO
-        pass
-
-
-class Player:
-    """TODO"""
-
-    def __init__(self):
-        """TODO"""
+    def set_piece(self, piece_obj=None):
+        """Takes a square and a piece object, and "places" the piece on the square. When called without a piece
+        parameter, clears the square."""
         pass
 
 
 class Piece:
-    """TODO"""
+    """Base class for all game pieces. Stores the owning player as 'BLUE' or 'RED'."""
 
-    def __init__(self):
+    def __init__(self, player):
         """TODO"""
+        pass
+
+    def get_player(self):
+        """Returns the owning player of this piece."""
         pass
 
 
 class General(Piece):
-    """TODO"""
+    """A class representing the General."""
 
-    def __init__(self):
+    def __init__(self, player):
         """TODO"""
-        super().__init__()
+        super().__init__(player)
         pass
 
-    def moves(self, square):
-        """TODO"""
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a General (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
         pass
 
 
 class Guard(Piece):
-    """TODO"""
+    """A class representing a Guard."""
 
-    def __init__(self):
+    def __init__(self, player):
         """TODO"""
-        super().__init__()
+        super().__init__(player)
         pass
 
-    def moves(self, square):
-        """TODO"""
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a Guard (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
         pass
 
 
 class Horse(Piece):
-    """TODO"""
+    """A class representing a Horse."""
 
-    def __init__(self):
+    def __init__(self, player):
         """TODO"""
-        super().__init__()
+        super().__init__(player)
         pass
 
-    def moves(self, square):
-        """TODO"""
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a Horse (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
         pass
 
 
 class Elephant(Piece):
-    """TODO"""
+    """A class representing an elephant."""
 
-    def __init__(self):
+    def __init__(self, player):
         """TODO"""
-        super().__init__()
+        super().__init__(player)
+
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples to describe the movement of an Elephant (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
+        pass
 
     pass
 
 
 class Chariot(Piece):
-    """TODO"""
+    """A class representing a Chariot."""
 
-    def __init(self):
+    def __init(self, player):
         """TODO"""
-        super().__init__()
+        super().__init__(player)
+
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a Chariot (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
+        pass
 
 
 class Cannon(Piece):
-    """TODO"""
+    """A class representing a Cannon."""
+
+    def __init__(self, player):
+        """TODO"""
+        super().__init__(player)
+        pass
+
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a Cannon (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]."""
+        pass
+
+
+class Soldier(Piece):
+    """A class representing a Soldier."""
 
     def __init__(self):
         """TODO"""
         super().__init__()
         pass
 
-
-class Soldier(Piece):
-    """TODO"""
-
-    def __init__(self):
-        """TODO"""
-        super().__init__()
+    def move_map(self):
+        """Returns a list of 'relative' coordinate-tuples that describe the movement of a Soldier (assuming the current
+        square is (0, 0) coordinate location. For example, a piece that can only move "up" by 1 square would return the
+        list [(0, 1)]. Since Soldiers can only move towards the opposing side, RED move maps are inverted for the row-
+        adjustments (e.g. (0, 1) becomes (0, -1)."""
         pass
 
 
