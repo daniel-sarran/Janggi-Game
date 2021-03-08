@@ -41,7 +41,7 @@
 
         PIECEMAP responsibilities
         - The 'Pieces' holds a hash table of BLUE and RED pieces, and their locations
-        >>> _pieces = {
+        >> _pieces = {
                         'BLUE':
                             {   'General': ['e9'],        <-- General location is on 'e9' square
                                 'Chariot': ['a10', 'i10'] <-- there are two chariots
@@ -74,7 +74,7 @@
 
         - e.g. 'Horse' may move up one square orthogonal, and one square diagonal:
         - calling 'move_map' will return a list
-            >>> [ ['up', 'up-left'], ['up', 'up-right'], ['left', 'up-left']... ]
+            >> [ ['up', 'up-left'], ['up', 'up-right'], ['left', 'up-left']... ]
             representing sequential steps for each possible move to be made
 
         II. VALIDATING MOVEMENT across player turn, board size, obstructing pieces, etc.
@@ -171,6 +171,9 @@
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 """
+BLUE = '\033[94m'
+RED = '\033[91m'
+END_COLOR = '\033[0m'
 
 
 class JanggiGame:
@@ -266,17 +269,111 @@ class Board:
         """Initializes a Board object. A board is made of of 90 Square objects."""
         self._squares = []
         self._pieces = PieceMap()
-        self._attacked = []
+        self._files = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8}
+        self._rows = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8, '10': 9}
         self._setup_squares()
-        pass
+        self._movable_squares = {'RED': [], 'BLUE': []}
+
+        self._setup_squares()
+        self._setup_pieces()
 
     def __str__(self):
-        """String representation of a board."""
-        pass
+        """
+        String representation of a board. The box lines are drawn here, as well as the string representation of each
+        square object comprising the board. Squares show as empty space unless a piece is on that square, in which case
+        a color coded label for that piece is displayed instead. The fortress of one color's side is loosely outlined in
+        its respective color.
+
+        Board 'Squares' by index in self._squares list:
+              a     b     c     d     e     f     g     h     i
+           ┏━━━━━┯━━━━━┯━━━━━┍━━━━━┯━━━━━┯━━━━━┑━━━━━┯━━━━━┯━━━━━┓
+         1 ┃  0  │  1  │  2  │  3  │  4  │  5  │  6  │  7  │  8  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         2 ┃  9  │ 10  │ 11  │ 12  │ 13  │ 14  │ 15  │ 16  │ 17  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         3 ┃ 18  │ 19  │ 20  │ 21  │ 22  │ 23  │ 24  │ 25  │ 26  ┃
+           ┠─────┼─────┼─────└─────┴─────┴─────┘─────┼─────┼─────┨
+         4 ┃ 27  │ 28  │ 29  │ 30  │ 31  │ 32  │ 33  │ 34  │ 35  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         5 ┃ 36  │ 37  │ 38  │ 39  │ 40  │ 41  │ 42  │ 43  │ 44  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         6 ┃ 45  │ 46  │ 47  │ 48  │ 49  │ 50  │ 51  │ 52  │ 53  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         7 ┃ 54  │ 55  │ 56  │ 57  │ 58  │ 59  │ 60  │ 61  │ 62  ┃
+           ┠─────┼─────┼─────┌─────┬─────┬─────┐─────┼─────┼─────┨
+         8 ┃ 63  │ 64  │ 65  │ 66  │ 67  │ 68  │ 69  │ 70  │ 71  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         9 ┃ 72  │ 73  │ 74  │ 75  │ 76  │ 77  │ 78  │ 79  │ 80  ┃
+           ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨
+         10┃ 81  │ 82  │ 83  │ 84  │ 85  │ 86  │ 87  │ 88  │ 89  ┃
+           ┗━━━━━┷━━━━━┷━━━━━┕━━━━━┷━━━━━┷━━━━━┙━━━━━┷━━━━━┷━━━━━┛
+        """
+        rows = '      a     b     c     d     e     f     g     h     i\n'
+        rows += f'   ┏━━━━━┯━━━━━┯━━━━━{RED}┍━━━━━┯━━━━━┯━━━━━┑{END_COLOR}━━━━━┯━━━━━┯━━━━━┓\n'
+        labels = ['1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ', '8 ', '9 ', '10']
+        for i in range(0, 90, 9):
+            rows += ' ' + labels[i // 9] + '┃'
+            rows += '│'.join(map(str, self._squares[i: i + 9]))
+            rows += '┃\n'
+            if i < 74:
+                if i == 18:
+                    rows += f'   ┠─────┼─────┼─────{RED}└─────┴─────┴─────┘{END_COLOR}─────┼─────┼─────┨\n'
+                elif i == 54:
+                    rows += f'   ┠─────┼─────┼─────{BLUE}┌─────┬─────┬─────┐{END_COLOR}─────┼─────┼─────┨\n'
+
+                else:
+                    rows += '   ┠─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┨\n'
+
+        rows += f'   ┗━━━━━┷━━━━━┷━━━━━{BLUE}┕━━━━━┷━━━━━┷━━━━━┙{END_COLOR}━━━━━┷━━━━━┷━━━━━┛\n'
+        return rows
 
     def _setup_squares(self):
-        """Instantiates 90 square objects with row and file."""
-        pass
+        """
+        Instantiates 90 square objects with row and file, and sets pointers to surrounding squares for each square.
+        """
+        for row in self._rows.keys():
+            for file in self._files.keys():
+                self._squares.extend([Square(file, row)])
+
+        board = list(range(90))
+        for index, square in enumerate(self._squares):
+            if index - 1 in board:
+                square.set_left(self._squares[index - 1])
+
+            if index + 1 in board:
+                square.set_right(self._squares[index + 1])
+
+            if index - 9 in board:
+                square.set_up(self._squares[index - 9])
+
+            if index + 9 in board:
+                square.set_down(self._squares[index + 9])
+
+            if index - 10 in board:
+                square.set_up_left(self._squares[index - 10])
+
+            if index - 8 in board:
+                square.set_up_right(self._squares[index - 8])
+
+            if index + 8 in board:
+                square.set_down_left(self._squares[index + 8])
+
+            if index + 10 in board:
+                square.set_down_right(self._squares[index + 10])
+
+    def _setup_pieces(self):
+        """Places pieces on board based on their starting board positions."""
+        blue_map = self._pieces.get_blue_map().items()
+        for piece, square_list in blue_map:
+            for square_string in square_list:
+                square_obj = self.get_square_from_string(square_string)
+                square_obj.place_piece(piece)
+
+        red_map = self._pieces.get_red_map().items()
+        for piece, square_list in red_map:
+            for square_string in square_list:
+                square_obj = self.get_square_from_string(square_string)
+                square_obj.place_piece(piece)
 
     def is_attacked(self, square):
         """
@@ -322,11 +419,24 @@ class Board:
         """
         pass
 
+    def get_square_from_string(self, square_string):
+        """Takes a string algebraic notation representation of a square, and returns the corresponding square object."""
+        file = square_string[0]
+        row = square_string[1:]
+        index = 9 * self._rows[row] + self._files[file]
+        return self._squares[index]
+
 
 class Square:
     """
     A class representing a single Square on the game board. Each square has information about its row and file, and
     the piece on top of the square, if there is one.
+
+    A Square has 8 pointers to surrounding squares, where pointers point to None for edge of board:
+
+    ↖ ↑ ↗
+    ← □ →
+    ↙ ↓ ↘
     """
 
     def __init__(self, file, row):
@@ -341,6 +451,7 @@ class Square:
         self._file = file
         self._row = row
         self._piece = None
+
         self._up = None
         self._up_left = None
         self._left = None
@@ -350,25 +461,26 @@ class Square:
         self._right = None
         self._up_right = None
 
-    def get_piece_at(self, square):
+    def __str__(self):
+        if self._piece:
+            return f'{self._piece}'
+        else:
+            return f'     '
+
+    def get_piece(self):
         """
         Takes square object, e.g. 'a1', and returns the piece object on that square, otherwise returns None.
 
         :param  square: The square to retrieve the unit from
         :type   square: Square object
         """
+        return self._piece
+
+    def remove_piece(self):
+        """Clears the square of any pieces."""
         pass
 
-    def clear_piece_at(self, square):
-        """
-        Clears the square of any pieces.
-
-        :param  square: The square to clear
-        :type   square: Square object
-        """
-        pass
-
-    def set_piece_at(self, square, piece):
+    def place_piece(self, piece):
         """
         Places a piece in the target square.
 
@@ -377,7 +489,75 @@ class Square:
         :param  piece:  The piece to set on the square
         :type   piece:  Piece object (could be any derived class of Piece - e.g. Horse, General, etc.)
         """
-        pass
+        self._piece = piece
+
+    def get_string_of_square(self):
+        """Returns a string representation of the coordinates of the square."""
+        return f'{self._file}{self._row}'
+
+    def set_up(self, square):
+        """Takes Square object and sets pointer to square immediately above the current square."""
+        self._up = square
+
+    def get_up(self):
+        """Returns Square object for square immediately above the current square."""
+        return self._up
+
+    def set_up_left(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal above-left the current square."""
+        self._up_left = square
+
+    def get_up_left(self):
+        """Returns Square object for square immediately diagonal above-left current square."""
+        return self._up_left
+
+    def set_left(self, square):
+        """Takes Square object and sets pointer to square immediately to the left of current square."""
+        self._left = square
+
+    def get_left(self):
+        """Returns Square object for square immediately to the left of current square."""
+        return self._left
+
+    def set_down_left(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal below-left to current square."""
+        self._down_left = square
+
+    def get_down_left(self):
+        """Returns Square object for square immediately diagonal below-left to current square."""
+        return self._down_left
+
+    def set_down(self, square):
+        """Takes Square object and sets pointer to square immediately below current square."""
+        self._down = square
+
+    def get_down(self):
+        """Returns Square object for square immediately below current square."""
+        return self._down
+
+    def set_down_right(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal below-right current square."""
+        self._down_right = square
+
+    def get_down_right(self):
+        """Returns Square object for square immediately diagonal below-right current square."""
+        return self._down_right
+
+    def set_right(self, square):
+        """Takes Square object and sets pointer to square immediately to the right of current square."""
+        self._right = square
+
+    def get_right(self):
+        """Returns Square object for square immediately to the right of current square."""
+        return self._down_right
+
+    def set_up_right(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal above-right of current square."""
+        self._up_right = square
+
+    def get_up_right(self):
+        """Returns Square object for square immediately diagonal above-right of current square."""
+        return self._up_right
 
 
 class PieceMap:
@@ -385,21 +565,59 @@ class PieceMap:
 
     def __init__(self):
         """Initializes a PieceMap class with starting positions for all pieces for each player."""
-        pass
+        self._blue_map = {
+            General('BLUE'): ['e9'],
+            Guard('BLUE'): ['d10', 'f10'],
+            Horse('BLUE'): ['c10', 'h10'],
+            Elephant('BLUE'): ['b10', 'g10'],
+            Chariot('BLUE'): ['a10', 'i10'],
+            Cannon('BLUE'): ['b8', 'h8'],
+            Soldier('BLUE'): ['a7', 'c7', 'e7', 'g7', 'i7']
+        }
+        self._red_map = {
+            General('RED'): ['e2'],
+            Guard('RED'): ['d1', 'f1'],
+            Horse('RED'): ['c1', 'h1'],
+            Elephant('RED'): ['b1', 'g1'],
+            Chariot('RED'): ['a1', 'i1'],
+            Cannon('RED'): ['b3', 'h3'],
+            Soldier('RED'): ['a4', 'c4', 'e4', 'g4', 'i4']
+        }
 
-    def update_piece(self, piece, square_to_add=None, square_to_remove=None):
+    def set_piece_at(self, piece, square_to_add):
         """
-        Takes a piece object, and updates its location in the PieceMap. Optional parameters to add or remove depending
-        on desired action.
+        Takes a piece object and location, adds location for that piece on the PieceMap.
 
         :param  piece:  The piece whose locations are being updated
         :type   piece:  Piece object or child of Piece
         :param  square_to_add:  The new location of a moved piece
         :type   square_to_add:  Square object
+
+        """
+        pass
+
+    def remove_piece_at(self, piece, square_to_remove):
+        """
+        Takes a piece object and location, removes location for that piece on the PieceMap.
+
+        :param  piece:  The piece whose locations are being updated
+        :type   piece:  Piece object or child of Piece
         :param  square_to_remove:   The previous location of a moved piece, OR the location of a taken piece
         :type   square_to_remove:   Square object
         """
         pass
+
+    def get_blue_map(self):
+        """Returns blue pieces and their locations."""
+        return self._blue_map
+
+    def get_red_map(self):
+        """Returns red pieces and their locations."""
+        return self._red_map
+
+
+class PrintColors:
+    """Class"""
 
 
 class Piece:
@@ -407,11 +625,11 @@ class Piece:
 
     def __init__(self, player):
         """Initializes the Piece base class. Stores the owning player as 'BLUE' or 'RED'."""
-        pass
+        self._player = player
 
     def get_player(self):
         """Returns the owning player of this piece."""
-        pass
+        return self._player
 
 
 class General(Piece):
@@ -421,6 +639,13 @@ class General(Piece):
         """Initializes a General and its movement mechanism."""
         super().__init__(player)
         pass
+
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE}★GEN★' + END_COLOR
+        else:
+            return f'{RED}★GEN★' + END_COLOR
 
     def get_move_map(self):
         """
@@ -438,6 +663,13 @@ class Guard(Piece):
         super().__init__(player)
         pass
 
+    def __str__(self):
+        """String representation of a guard for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE}GUARD' + END_COLOR
+        else:
+            return f'{RED}GUARD' + END_COLOR
+
     def get_move_map(self):
         """
         Returns a list of 'move lists'. The 'move lists' are stepwise movements from one square to another that when
@@ -454,6 +686,13 @@ class Horse(Piece):
         super().__init__(player)
         pass
 
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE}HORSE' + END_COLOR
+        else:
+            return f'{RED}HORSE' + END_COLOR
+
     def get_move_map(self):
         """
         Returns a list of 'move lists'. The 'move lists' are stepwise movements from one square to another that when
@@ -469,6 +708,13 @@ class Elephant(Piece):
         """Initializes an Elephant and its movement mechanism."""
         super().__init__(player)
 
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE} ELE ' + END_COLOR
+        else:
+            return f'{RED} ELE ' + END_COLOR
+
     def get_move_map(self):
         """
         Returns a list of 'move lists'. The 'move lists' are stepwise movements from one square to another that when
@@ -483,6 +729,13 @@ class Chariot(Piece):
     def __init(self, player):
         """Initializes a Chariot and its movement mechanism."""
         super().__init__(player)
+
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE} CHA ' + END_COLOR
+        else:
+            return f'{RED} CHA ' + END_COLOR
 
     def get_move_map(self):
         """
@@ -500,6 +753,13 @@ class Cannon(Piece):
         super().__init__(player)
         pass
 
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE} CAN ' + END_COLOR
+        else:
+            return f'{RED} CAN ' + END_COLOR
+
     def get_move_map(self):
         """
         Returns a list of 'move lists'. The 'move lists' are stepwise movements from one square to another that when
@@ -516,6 +776,13 @@ class Soldier(Piece):
         super().__init__(player)
         pass
 
+    def __str__(self):
+        """String representation of a general for board printout."""
+        if self._player == 'BLUE':
+            return f'{BLUE} SOL ' + END_COLOR
+        else:
+            return f'{RED} SOL ' + END_COLOR
+
     def get_move_map(self):
         """
         Returns a list of 'move lists'. The 'move lists' are stepwise movements from one square to another that when
@@ -526,7 +793,3 @@ class Soldier(Piece):
 
 if __name__ == '__main__':
     game = JanggiGame()
-    print(game._board)
-    print(game.get_turn())
-    game._end_turn()
-    print(game.get_turn())
