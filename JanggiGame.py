@@ -6,16 +6,11 @@
 
 LAST LEFT OFF ON:
 
-    Chariot validate move & recursive traversal in ONE direction adding all squares along the way to "visited"
-    - a recursive approach that iterates in each 4 directions
-    - each new square is added in a direction, stops upon condition
+ - Check & Checkmate
+ - Follow general, follow palace squares
 
  Movement:
- - Chariot (board and palace)
- - Cannon (board and palace)
- - General
- - Guard
- - Soldier (palace)
+ - DONE!
 
  Put in "type" for each piece
  Remove move map from each class - moved to base Piece class
@@ -83,7 +78,8 @@ class JanggiGame:
         # Record move
         self._board.record_move(from_square, to_square)
 
-        # Remove any captured piece - already done from movement
+        # Check / Checkmate
+
         # Update game state, if necessary
 
         # Update whose turn it is
@@ -100,7 +96,7 @@ class JanggiGame:
         """
         pass
 
-    def is_checkmate(self, player):
+    def _is_checkmate(self, player):
         """
         Takes a string representing a player, returns a True if player is in checkmate, otherwise returns False.
 
@@ -138,7 +134,7 @@ class Board:
         self._red_palace = set()
         self._palaces = set()
 
-        self.setup()
+        self._setup()
 
     def __str__(self):
         """
@@ -190,7 +186,7 @@ class Board:
         rows += f'     ┗━━━━━┷━━━━━┷━━━━━{BLUE}┕━━━━━┷━━━━━┷━━━━━┙{END_COLOR}━━━━━┷━━━━━┷━━━━━┛\n'
         return rows
 
-    def setup(self):
+    def _setup(self):
         """
 
         """
@@ -246,13 +242,13 @@ class Board:
         blue_map = self._pieces.get_piece_map_for('BLUE').items()
         for piece, square_list in blue_map:
             for square_string in square_list:
-                square_obj = self.get_square_from_string(square_string)
+                square_obj = self._get_square_from_string(square_string)
                 square_obj.place_piece(piece)
 
         red_map = self._pieces.get_piece_map_for('RED').items()
         for piece, square_list in red_map:
             for square_string in square_list:
-                square_obj = self.get_square_from_string(square_string)
+                square_obj = self._get_square_from_string(square_string)
                 square_obj.place_piece(piece)
 
     def _setup_palaces(self):
@@ -280,12 +276,12 @@ class Board:
         :param  to_str:  The destination square the moving piece is moving to
         :type   to_str:  string representing algebraic notation of square e.g. 'a1'
         """
-        from_square = self.get_square_from_string(from_str)
-        to_square = self.get_square_from_string(to_str)
+        from_square = self._get_square_from_string(from_str)
+        to_square = self._get_square_from_string(to_str)
         to_square.place_piece(from_square.get_piece())
         from_square.remove_piece()
 
-    def get_square_from_string(self, square_string):
+    def _get_square_from_string(self, square_string):
         """
         Takes a string algebraic notation representation of a square, and returns the corresponding square object.
 
@@ -293,12 +289,12 @@ class Board:
         :type   square_string:  basestring
         """
         try:
-            index = self.get_index_from_string(square_string)
+            index = self._get_index_from_string(square_string)
             return self._squares[index]
         except InvalidSquareError:
             print('Invalid square entered')
 
-    def get_index_from_string(self, square_string) -> int:
+    def _get_index_from_string(self, square_string) -> int:
         """
         Takes a string algebraic notation representation of a square, and returns the corresponding index of the square
         in self._squares.
@@ -327,8 +323,8 @@ class Board:
         """
         # Validate the squares are only a1 through i10
         try:
-            from_square = self.get_square_from_string(from_str)
-            self.get_square_from_string(to_str)
+            from_square = self._get_square_from_string(from_str)
+            self._get_square_from_string(to_str)
         except InvalidSquareError:
             print('Invalid Square - enter squares from "a1" to "i10"')
             return False
@@ -369,16 +365,16 @@ class Board:
         valid_destinations = set()
 
         if piece_obj.get_type() == 'guard' or piece_obj.get_type() == 'general':
-            valid_destinations = self.generate_general_guard_destinations(piece_obj, square_obj, player)
+            valid_destinations = self._generate_general_guard_destinations(piece_obj, square_obj, player)
 
         elif piece_obj.get_type() == 'soldier':
-            valid_destinations = self.generate_soldier_destinations(piece_obj, square_obj, player)
+            valid_destinations = self._generate_soldier_destinations(piece_obj, square_obj, player)
 
         elif piece_obj.get_type() == 'chariot':
-            valid_destinations = self.generate_chariot_destinations(piece_obj, square_obj, player)
+            valid_destinations = self._generate_chariot_destinations(piece_obj, square_obj, player)
 
         elif piece_obj.get_type() == 'cannon':
-            valid_destinations = self.generate_cannon_destinations(piece_obj, square_obj, player)
+            valid_destinations = self._generate_cannon_destinations(piece_obj, square_obj, player)
 
         else:  # horse, elephant
             for move_list in piece_obj.get_move_map():
@@ -388,7 +384,7 @@ class Board:
 
         return valid_destinations
 
-    def generate_general_guard_destinations(self, piece_obj, square_obj, player):
+    def _generate_general_guard_destinations(self, piece_obj, square_obj, player):
         """
 
         :param piece_obj:
@@ -406,7 +402,7 @@ class Board:
         valid_destinations = valid_destinations.intersection(self._palaces)
         return valid_destinations
 
-    def generate_soldier_destinations(self, piece_obj, square_obj, player):
+    def _generate_soldier_destinations(self, piece_obj, square_obj, player):
         """
 
         :param piece_obj:
@@ -440,8 +436,7 @@ class Board:
 
         return valid_destinations.union(palace_destinations)
 
-    # TODO: incomplete
-    def generate_chariot_destinations(self, piece_obj, square_obj, player):
+    def _generate_chariot_destinations(self, piece_obj, square_obj, player):
         """
 
         :param piece_obj:
@@ -475,8 +470,7 @@ class Board:
 
         return valid_destinations.union(palace_destinations)
 
-    # TODO: incomplete
-    def generate_cannon_destinations(self, piece_obj, square_obj, player):
+    def _generate_cannon_destinations(self, piece_obj, square_obj, player):
         """
 
         :param piece_obj:
@@ -510,7 +504,7 @@ class Board:
 
         return valid_destinations.union(palace_destinations)
 
-    def generate_horse_elephant_destinations(self, piece_obj, square_obj, player):
+    def _generate_horse_elephant_destinations(self, piece_obj, square_obj, player):
         """
 
         :param piece_obj:
@@ -989,26 +983,22 @@ class PieceMap:
     def __init__(self):
         """Initializes a PieceMap class with starting positions for all pieces for each player."""
         self._blue_map = {
-            # General('BLUE'): ['e9'],
-            # Guard('BLUE'): ['d10', 'f10'],
-            # Horse('BLUE'): ['c10', 'h10'],
-            # Elephant('BLUE'): ['b10', 'g10'],
-            # Chariot('BLUE'): ['a10', 'i10'],
-            # Cannon('BLUE'): ['b8', 'h8'],
-            # Soldier('BLUE'): ['a7', 'c7', 'e7', 'g7', 'i7']
-            Cannon('BLUE'): ['d10']
+            General('BLUE'): ['e9'],
+            Guard('BLUE'): ['d10', 'f10'],
+            Horse('BLUE'): ['c10', 'h10'],
+            Elephant('BLUE'): ['b10', 'g10'],
+            Chariot('BLUE'): ['a10', 'i10'],
+            Cannon('BLUE'): ['b8', 'h8'],
+            Soldier('BLUE'): ['a7', 'c7', 'e7', 'g7', 'i7']
         }
         self._red_map = {
-            # General('RED'): ['e2'],
-            # Guard('RED'): ['d1', 'f1'],
-            # Horse('RED'): ['c1', 'h1'],
-            # Elephant('RED'): ['b1', 'g1'],
-            # Chariot('RED'): ['a1', 'i1'],
-            # Cannon('RED'): ['b3', 'h3'],
-            # Soldier('RED'): ['a4', 'c4', 'e4', 'g4', 'i4']
-            Cannon('RED'): ['d9'],
-            Soldier('RED'): ['e9']
-
+            General('RED'): ['e2'],
+            Guard('RED'): ['d1', 'f1'],
+            Horse('RED'): ['c1', 'h1'],
+            Elephant('RED'): ['b1', 'g1'],
+            Chariot('RED'): ['a1', 'i1'],
+            Cannon('RED'): ['b3', 'h3'],
+            Soldier('RED'): ['a4', 'c4', 'e4', 'g4', 'i4']
         }
 
         self._blue_locations = []
