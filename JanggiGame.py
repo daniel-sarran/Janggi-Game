@@ -344,11 +344,11 @@ class Board:
             return False
 
         # Compare 'to' against valid piece destination squares
-        valid_moves = self._find_piece_movement_destinations(from_str, from_square)
+        valid_moves = self._find_piece_movement_destinations(from_square)
 
         return to_str in valid_moves
 
-    def _find_piece_movement_destinations(self, square_str, square_obj) -> list or None:
+    def _find_piece_movement_destinations(self, square_obj) -> list or None:
         """
         Receives a Square object holding a game piece owned by the player whose turn it is. Returns a list of possible
         destination squares based on the piece's movement, and other pieces on the board (e.g. collision or capture).
@@ -361,13 +361,11 @@ class Board:
         :param square_obj:
         """
         piece_obj = square_obj.get_piece()
+
         if not piece_obj:
             return
 
         player = piece_obj.get_player()
-
-        is_palace = square_str in self._palaces
-
         valid_destinations = set()
 
         if piece_obj.get_type() == 'guard' or piece_obj.get_type() == 'general':
@@ -393,7 +391,6 @@ class Board:
     def generate_general_guard_destinations(self, piece_obj, square_obj, player):
         """
 
-        :param is_palace:
         :param piece_obj:
         :param square_obj:
         :param player:
@@ -412,7 +409,6 @@ class Board:
     def generate_soldier_destinations(self, piece_obj, square_obj, player):
         """
 
-        :param is_palace:
         :param piece_obj:
         :param square_obj:
         :param player:
@@ -448,7 +444,6 @@ class Board:
     def generate_chariot_destinations(self, piece_obj, square_obj, player):
         """
 
-        :param is_palace:
         :param piece_obj:
         :param square_obj:
         :param player:
@@ -484,7 +479,6 @@ class Board:
     def generate_cannon_destinations(self, piece_obj, square_obj, player):
         """
 
-        :param is_palace:
         :param piece_obj:
         :param square_obj:
         :param player:
@@ -519,7 +513,6 @@ class Board:
     def generate_horse_elephant_destinations(self, piece_obj, square_obj, player):
         """
 
-        :param is_palace:
         :param piece_obj:
         :param square_obj:
         :param player:
@@ -711,7 +704,6 @@ class Board:
     def _valid_move_can(self, current_square, direction, player, piece, destinations=False, pieces_in_path=0):
         """
 
-        :param palace:
         :param current_square:
         :param direction:
         :param player:
@@ -1317,6 +1309,6 @@ class InvalidSquareError(Exception):
 
 if __name__ == '__main__':
     game = JanggiGame()
-    square = game._board.get_square_from_string('d10')
-    piece = square.get_piece()
-    game._board.generate_cannon_destinations(piece, square, 'BLUE')
+    # square = game._board.get_square_from_string('d10')
+    # piece = square.get_piece()
+    # game._board.generate_cannon_destinations(piece, square, 'BLUE')
