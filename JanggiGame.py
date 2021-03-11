@@ -134,6 +134,7 @@ class JanggiGame:
         self._board.record_move(from_square, to_square)
 
         # Check / Checkmate
+        self._move.update_attacks(self._turn)
 
         # Update game state, if necessary
 
