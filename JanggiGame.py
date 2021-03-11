@@ -754,10 +754,10 @@ class Movement:
                 if destination_square:
                     palace_destinations.add(destination_square)
 
-            diagonal_destinations = palace_destinations.intersection(self._board.get_palaces())
+            diagonal_destinations = palace_destinations.intersection(self._board.get_palace(player))
 
         valid_destinations = valid_destinations.union(diagonal_destinations)
-        valid_destinations = valid_destinations.intersection(self._board.get_palaces())
+        valid_destinations = valid_destinations.intersection(self._board.get_palace(player))
 
         return valid_destinations
 
@@ -1472,12 +1472,4 @@ class InvalidSquareError(Exception):
 if __name__ == '__main__':
     # pass
     game = JanggiGame()
-    game.make_move('c10', 'd8')
-    game.make_move('c1', 'd3')
-    game.make_move('e7', 'e6')
-    game.make_move('e4', 'e5')
-    game.make_move('c7', 'c6')
-    game.make_move('c4', 'c5')
-    game.make_move('c6', 'c5')
-    game.make_move('e5', 'e6')
-    game.make_move('d8', 'e6')
+    game.make_move('e2', 'f3')
