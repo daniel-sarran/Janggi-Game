@@ -37,7 +37,7 @@ class JanggiGame:
         """Initializes a JanggiGame object. Sets up starting player, board and pieces."""
         self._board = Board()
         self._move = self._board.get_move_object()
-        self._turn = 'BLUE'
+        self._turn = 'blue'
         self._game_state = 'UNFINISHED'
 
     def __repr__(self):
@@ -126,18 +126,36 @@ class JanggiGame:
             self._end_turn()
             return True
 
+        player = self._turn
+        if player == 'blue':
+            other_player = 'red'
+        else:
+            other_player = 'blue'
+
         # Validate move
-        if not self._move.is_valid_move(from_square, to_square, self._turn):
+        if not self._move.is_valid_move(from_square, to_square, player):
             return False
 
         # Record move
         to_square_obj = self._board.get_square_from_string(to_square)
         piece_obj = self._board.get_square_from_string(from_square).get_piece()
-        self._move.update_piece_location(self._turn, piece_obj, to_square_obj)
+        self._move.update_piece_location(player, piece_obj, to_square_obj)
         self._board.record_move(from_square, to_square)
 
-        # Check / Checkmate
-        self._move.update_attacks(self._turn)
+        # If in check after move, undo move
+        if self.is_in_check(player):
+            from_square_obj = self._board.get_square_from_string(from_square)
+            piece_obj = self._board.get_square_from_string(to_square).get_piece()
+            self._move.update_piece_location(player, piece_obj, from_square_obj)
+            self._board.record_move(to_square, from_square)
+            return False
+        else:
+            self._move.set_in_check(player, False)
+
+        # Check / Checkmate other player
+        self._move.update_attacks(player)
+        if self.is_in_check(other_player):
+            self._move.set_in_check(other_player, True)
 
         # Update game state, if necessary
 
@@ -149,11 +167,11 @@ class JanggiGame:
         Takes a string representing the player. References whether the player's General's square is in the
         '_attacked' list of squares. If so, returns True. Otherwise, returns False.
 
-        :param  player  One of the players 'BLUE' or 'RED'
+        :param  player  One of the players 'blue' or 'red'
         :type   player  string
         """
-        general_square = self._move.get_general_location_for(player.lower())
-        if general_square.get_string_of_square() in self._move.get_attacked_by(player.lower()):
+        general_square = self._move.get_general_location_for(player)
+        if general_square.get_string_of_square() in self._move.get_attacked_by(player):
             return True
         else:
             return False
@@ -162,17 +180,17 @@ class JanggiGame:
         """
         Takes a string representing a player, returns a True if player is in checkmate, otherwise returns False.
 
-        :param  player  One of the players 'BLUE' or 'RED'
+        :param  player  One of the players 'blue' or 'red'
         :type   player  string
         """
         pass
 
     def _end_turn(self) -> None:
         """Ends current player's turn."""
-        if self._turn == 'BLUE':
-            self._turn = 'RED'
-        else:  # self._turn == 'RED'
-            self._turn = 'BLUE'
+        if self._turn == 'blue':
+            self._turn = 'red'
+        else:  # self._turn == 'red'
+            self._turn = 'blue'
 
     def get_turn(self) -> str:
         """Returns the player whose turn it is to make a move."""
@@ -198,7 +216,7 @@ class Board:
         self._palace_move_augmenting_squares = {'d8', 'f8', 'e9', 'd10', 'f10'}
 
         self._starting_positions = {
-            'BLUE': {
+            'blue': {
                 'general': ['e9'],
                 'guard': ['d10', 'f10'],
                 'horse': ['c10', 'h10'],
@@ -207,7 +225,7 @@ class Board:
                 'cannon': ['b8', 'h8'],
                 'soldier': ['a7', 'c7', 'e7', 'g7', 'i7']
             },
-            'RED': {
+            'red': {
                 'general': ['e2'],
                 'guard': ['d1', 'f1'],
                 'horse': ['c1', 'h1'],
@@ -221,8 +239,8 @@ class Board:
         self._setup_palaces()
         self._move = Movement(self)
         self._setup_pieces()
-        self._move.update_attacks('BLUE')
-        self._move.update_attacks('RED')
+        self._move.update_attacks('blue')
+        self._move.update_attacks('red')
 
     def _setup_squares(self) -> None:
         """
@@ -363,7 +381,7 @@ class Board:
         :param player:
         :return:
         """
-        if player == 'BLUE':
+        if player == 'blue':
             return self._blue_palace
         else:  # player == 'RED'
             return self._red_palace
@@ -541,25 +559,27 @@ class Movement:
     def __init__(self, board_obj):
         """Initializes a PieceMap class with starting positions for all pieces for each player."""
         self._board = board_obj
+        # attacks = {PLAYER: {SQUARE object: {destination strings e.g. 'a1', 'a2'}}}
         self._attacks = {
-            'BLUE': dict(),
-            'RED': dict()
+            'blue': dict(),
+            'red': dict()
         }
+        # attacked_by = {'blue': {'a1': SQUARE object}} -- 'a1' is attacked by the square object
         self._attacked_by = {
-            'BLUE': dict(),
-            'RED': dict()
+            'blue': dict(),
+            'red': dict()
         }
         self._pieces_locations = {
-            'BLUE': dict(),
-            'RED': dict()
+            'blue': dict(),
+            'red': dict()
         }
         self._generals = {
-            'BLUE': self._board.get_square_from_string('e9'),
-            'RED': self._board.get_square_from_string('e2')
+            'blue': self._board.get_square_from_string('e9'),
+            'red': self._board.get_square_from_string('e2')
         }
         self._in_check = {
-            'BLUE': False,
-            'RED': False
+            'blue': False,
+            'red': False
         }
 
     # TODO: instead of generating moves, see if it is in the player's piece attacks
@@ -586,7 +606,13 @@ class Movement:
         if player != piece.get_player():
             return False
 
-        return to_str in self._attacks[player][self._board.get_square_from_string(from_str)]
+        if player == 'blue':
+            other_player = 'red'
+        else:
+            other_player = 'blue'
+
+        to_square = self._board.get_square_from_string(from_str)
+        return to_str in self._attacks[player][to_square]
 
     def update_piece_location(self, player, piece_obj, square_obj):
         """
@@ -605,10 +631,10 @@ class Movement:
 
         :return:
         """
-        if player_turn == 'BLUE':
-            other_player = 'RED'
-        else:  # player == 'RED'
-            other_player = 'BLUE'
+        if player_turn == 'blue':
+            other_player = 'red'
+        else:  # player == 'red'
+            other_player = 'blue'
 
         self._attacks[player_turn] = dict()
         self._attacked_by[other_player] = dict()
@@ -1179,7 +1205,7 @@ class Piece:
     """Base class for all game pieces to be derived from."""
 
     def __init__(self, player):
-        """Initializes the Piece base class. Stores the owning player as 'BLUE' or 'RED'."""
+        """Initializes the Piece base class. Stores the owning player as 'blue' or 'red'."""
         self._player = player
         self._type = None
         self._move_map = None
@@ -1237,7 +1263,7 @@ class General(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE}★GEN★' + END_COLOR
         else:
             return f'{RED}★GEN★' + END_COLOR
@@ -1269,7 +1295,7 @@ class Guard(Piece):
 
     def __str__(self):
         """String representation of a guard for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue`':
             return f'{BLUE}GUARD' + END_COLOR
         else:
             return f'{RED}GUARD' + END_COLOR
@@ -1295,7 +1321,7 @@ class Horse(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE}HORSE' + END_COLOR
         else:
             return f'{RED}HORSE' + END_COLOR
@@ -1321,7 +1347,7 @@ class Elephant(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE} ELE ' + END_COLOR
         else:
             return f'{RED} ELE ' + END_COLOR
@@ -1349,7 +1375,7 @@ class Chariot(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE} CHA ' + END_COLOR
         else:
             return f'{RED} CHA ' + END_COLOR
@@ -1377,7 +1403,7 @@ class Cannon(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE} CAN ' + END_COLOR
         else:
             return f'{RED} CAN ' + END_COLOR
@@ -1391,23 +1417,23 @@ class Soldier(Piece):
         super().__init__(player)
         self._type = 'soldier'
         self._move_map = {
-            'BLUE': [
+            'blue': [
                 ['up', None],
                 ['left', None],
                 ['right', None]
             ],
-            'RED': [
+            'red': [
                 ['down', None],
                 ['left', None],
                 ['right', None]
             ]
         }
         self._palace_move_map = {
-            'BLUE': [
+            'blue': [
                 ['up_right', None],
                 ['up_left', None]
             ],
-            'RED': [
+            'red': [
                 ['down_right', None],
                 ['down_left', None]
             ]
@@ -1415,7 +1441,7 @@ class Soldier(Piece):
 
     def __str__(self):
         """String representation of a general for board printout."""
-        if self._player == 'BLUE':
+        if self._player == 'blue':
             return f'{BLUE} SOL ' + END_COLOR
         else:
             return f'{RED} SOL ' + END_COLOR
@@ -1443,9 +1469,9 @@ class InvalidSquareError(Exception):
 if __name__ == '__main__':
     # pass
     game = JanggiGame()
-    game.make_move('c7', 'c6')
+    # game.make_move('c7', 'c6')
     # square = game._board._get_square_from_string('d8')
     # piece = square.get_piece()
     # square2 = game._board._get_square_from_string('e1')
     # piece2 = square2.get_piece()
-    # # game._board._generate_general_guard_destinations(piece, square, 'BLUE')
+    # # game._board._generate_general_guard_destinations(piece, square, 'blue')
