@@ -195,26 +195,22 @@ class Board:
 
         self._starting_positions = {
             'BLUE': {
-                # 'general': ['e9'],
-                # 'guard': ['d10', 'f10'],
-                # 'horse': ['c10', 'h10'],
-                # 'elephant': ['b10', 'g10'],
-                # 'chariot': ['a10', 'i10'],
-                # 'cannon': ['b8', 'h8'],
-                # 'soldier': ['a7', 'c7', 'e7', 'g7', 'i7']
                 'general': ['e9'],
-                'soldier': ['e3', 'c7', 'e7', 'g7', 'i7']
+                'guard': ['d10', 'f10'],
+                'horse': ['c10', 'h10'],
+                'elephant': ['b10', 'g10'],
+                'chariot': ['a10', 'i10'],
+                'cannon': ['b8', 'h8'],
+                'soldier': ['a7', 'c7', 'e7', 'g7', 'i7']
             },
             'RED': {
-                # 'general': ['e2'],
-                # 'guard': ['d1', 'f1'],
-                # 'horse': ['c1', 'h1'],
-                # 'elephant': ['b1', 'g1'],
-                # 'chariot': ['a1', 'i1'],
-                # 'cannon': ['b3', 'h3'],
-                # 'soldier': ['a4', 'c4', 'e4', 'g4', 'i4']
                 'general': ['e2'],
-                'soldier': ['e8', 'c4', 'e4', 'g4', 'i4']
+                'guard': ['d1', 'f1'],
+                'horse': ['c1', 'h1'],
+                'elephant': ['b1', 'g1'],
+                'chariot': ['a1', 'i1'],
+                'cannon': ['b3', 'h3'],
+                'soldier': ['a4', 'c4', 'e4', 'g4', 'i4']
             }
         }
         self._setup_squares()
