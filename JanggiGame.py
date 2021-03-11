@@ -156,6 +156,7 @@ class JanggiGame:
 
         # Check / Checkmate other player
         self._move.update_attacks(player)
+        self._move.update_attacks(other_player)
         if self.is_in_check(other_player):
             self._move.set_in_check(other_player, True)
 
@@ -613,8 +614,8 @@ class Movement:
         else:
             other_player = 'blue'
 
-        to_square = self._board.get_square_from_string(from_str)
-        return to_str in self._attacks[player][to_square]
+        from_square = self._board.get_square_from_string(from_str)
+        return to_str in self._attacks[player][from_square]
 
     def update_piece_location(self, player, piece_obj, square_obj):
         """
@@ -1297,7 +1298,7 @@ class Guard(Piece):
 
     def __str__(self):
         """String representation of a guard for board printout."""
-        if self._player == 'blue`':
+        if self._player == 'blue':
             return f'{BLUE}GUARD' + END_COLOR
         else:
             return f'{RED}GUARD' + END_COLOR
@@ -1471,9 +1472,12 @@ class InvalidSquareError(Exception):
 if __name__ == '__main__':
     # pass
     game = JanggiGame()
-    # game.make_move('c7', 'c6')
-    # square = game._board._get_square_from_string('d8')
-    # piece = square.get_piece()
-    # square2 = game._board._get_square_from_string('e1')
-    # piece2 = square2.get_piece()
-    # # game._board._generate_general_guard_destinations(piece, square, 'blue')
+    game.make_move('c10', 'd8')
+    game.make_move('c1', 'd3')
+    game.make_move('e7', 'e6')
+    game.make_move('e4', 'e5')
+    game.make_move('c7', 'c6')
+    game.make_move('c4', 'c5')
+    game.make_move('c6', 'c5')
+    game.make_move('e5', 'e6')
+    game.make_move('d8', 'e6')
