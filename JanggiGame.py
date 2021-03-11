@@ -216,8 +216,10 @@ class Board:
         self._blue_palace = set()
         self._red_palace = set()
         self._palaces = set()
-        self._palace_move_augmenting_squares = {'d8', 'f8', 'e9', 'd10', 'f10'}
-
+        self._palace_move_augmenting_squares = {
+            'blue': {'d8', 'f8', 'e9', 'd10', 'f10'},
+            'red': {'d1', 'f1', 'e2', 'd3', 'f3'}
+        }
         self._starting_positions = {
             'blue': {
                 'general': ['e9'],
@@ -396,12 +398,12 @@ class Board:
         """
         return self._palaces
 
-    def get_palace_move_augmenting_squares(self):
+    def get_palace_move_augmenting_squares(self, player):
         """
 
         :return:
         """
-        return self._palace_move_augmenting_squares
+        return self._palace_move_augmenting_squares[player]
 
     def get_move_object(self):
         """
@@ -744,13 +746,13 @@ class Movement:
                 valid_destinations.add(destination_square)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares(player):
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
 
             for move_list in move_map:
-                destination_square = self._valid_move_sol(square_obj, 0, move_list, player, piece_obj)
+                destination_square = self._valid_move_gua_gen(square_obj, 0, move_list, player, piece_obj)
                 if destination_square:
                     palace_destinations.add(destination_square)
 
@@ -781,7 +783,7 @@ class Movement:
                 valid_destinations.add(destination_square)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares(player):
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -815,7 +817,7 @@ class Movement:
                 valid_destinations = valid_destinations.union(destination_squares)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares(player):
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -849,7 +851,7 @@ class Movement:
                 valid_destinations = valid_destinations.union(destination_squares)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares(player):
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -1472,4 +1474,5 @@ class InvalidSquareError(Exception):
 if __name__ == '__main__':
     # pass
     game = JanggiGame()
+    game.make_move('e9', 'f8')
     game.make_move('e2', 'f3')
