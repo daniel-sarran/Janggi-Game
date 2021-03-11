@@ -36,107 +36,11 @@ class JanggiGame:
     def __init__(self):
         """Initializes a JanggiGame object. Sets up starting player, board and pieces."""
         self._board = Board()
+        self._move = self._board.get_move_object()
         self._turn = 'BLUE'
         self._game_state = 'UNFINISHED'
 
-    def get_game_state(self):
-        """
-        Returns a string of the current game state.
-        Possible values are the strings "UNFINISHED", "RED_WON", or "BLUE_WON".
-        """
-        return self._game_state
-
-    def set_game_state(self, state):
-        """
-        Takes in a string of current game state, updates game state to that state.
-
-        :param  state    'UNFINISHED', 'BLUE_WON', 'RED_WON'
-        :type   state     string
-        """
-        pass
-
-    def make_move(self, from_square, to_square):
-        """
-        Takes two string parameters of the square moved from and the square moved to.
-        If the move is valid, updates game and piece board. A move to-and-from the same square is processed as a
-        "pass" for that player. Checks for 'check' and 'checkmate', and records movement on game board and pieces.
-
-        :param from_square  The source square the moving piece is coming from
-        :type  from_square  Square object
-        :param to_square    The source square the moving piece is coming from
-        :type  to_square    Square object
-        """
-        # Check for player 'pass'
-        if from_square == to_square:
-            self._end_turn()
-            return True
-
-        # Validate move
-        if not self._board.is_valid_move(from_square, to_square, self._turn):
-            return False
-
-        # Record move
-        self._board.record_move(from_square, to_square)
-
-        # Check / Checkmate
-
-        # Update game state, if necessary
-
-        # Update whose turn it is
-        self._end_turn()
-        return True
-
-    def is_in_check(self, player):
-        """
-        Takes a string representing the player. References whether the player's General's square is in the
-        '_attacked' list of squares. If so, returns True. Otherwise, returns False.
-
-        :param  player  One of the players 'BLUE' or 'RED'
-        :type   player  string
-        """
-        pass
-
-    def _is_checkmate(self, player):
-        """
-        Takes a string representing a player, returns a True if player is in checkmate, otherwise returns False.
-
-        :param  player  One of the players 'BLUE' or 'RED'
-        :type   player  string
-        """
-        pass
-
-    def _end_turn(self):
-        """Ends current player's turn."""
-        if self._turn == 'BLUE':
-            self._turn = 'RED'
-        else:  # self._turn == 'RED'
-            self._turn = 'BLUE'
-
-    def get_turn(self):
-        """Returns the player whose turn it is to make a move."""
-        return self._turn
-
-
-class Board:
-    """
-    Class representing board comprised of 9x10 squares, where each square is specified using "algebraic notation".
-    There are 9 files (columns) labeled a-i, and 10 rows labeled 1-10. The red side starts on row 1, and the blue side
-    starts on row 10.
-    """
-
-    def __init__(self):
-        """Initializes a Board object. A board is made of of 90 Square objects."""
-        self._squares = []
-        self._files = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8}
-        self._rows = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8, '10': 9}
-        self._pieces = PieceMap()
-        self._blue_palace = set()
-        self._red_palace = set()
-        self._palaces = set()
-
-        self._setup()
-
-    def __str__(self):
+    def __repr__(self):
         """
         String representation of a board. The box lines are drawn here, as well as the string representation of each
         square object comprising the board. Squares show as empty space unless a piece is on that square, in which case
@@ -172,7 +76,7 @@ class Board:
         labels = ['1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ', '8 ', '9 ', '10']
         for i in range(0, 90, 9):
             rows += '  ' + labels[i // 9] + ' ┃'
-            rows += '│'.join(map(str, self._squares[i: i + 9]))
+            rows += '│'.join(map(str, self._board._squares[i: i + 9]))
             rows += '┃\n'
             if i < 74:
                 if i == 18:
@@ -186,15 +90,141 @@ class Board:
         rows += f'     ┗━━━━━┷━━━━━┷━━━━━{BLUE}┕━━━━━┷━━━━━┷━━━━━┙{END_COLOR}━━━━━┷━━━━━┷━━━━━┛\n'
         return rows
 
-    def _setup(self):
+    def get_game_state(self) -> str:
         """
+        Returns a string of the current game state.
+        Possible values are the strings "UNFINISHED", "RED_WON", or "BLUE_WON".
+        """
+        return self._game_state
 
+    def set_game_state(self, state) -> None:
         """
+        Takes in a string of current game state, updates game state to that state.
+
+        :param  state    'UNFINISHED', 'BLUE_WON', 'RED_WON'
+        :type   state     string
+        """
+        pass
+
+    def make_move(self, from_square, to_square) -> bool:
+        """
+        Takes two string parameters of the square moved from and the square moved to.
+        If the move is valid, updates game and piece board. A move to-and-from the same square is processed as a
+        "pass" for that player. Checks for 'check' and 'checkmate', and records movement on game board and pieces.
+
+        :param from_square  The source square the moving piece is coming from
+        :type  from_square  Square object
+        :param to_square    The source square the moving piece is coming from
+        :type  to_square    Square object
+        """
+        # Check if game is already over
+        if self.get_game_state() != 'UNFINISHED':
+            return False
+
+        # Check for player 'pass'
+        if from_square == to_square:
+            self._end_turn()
+            return True
+
+        # Validate move
+        if not self._move.is_valid_move(from_square, to_square, self._turn):
+            return False
+
+        # Record move
+        self._board.record_move(from_square, to_square)
+
+        # Check / Checkmate
+
+        # Update game state, if necessary
+
+        self._end_turn()
+        return True
+
+    def is_in_check(self, player: str) -> bool:
+        """
+        Takes a string representing the player. References whether the player's General's square is in the
+        '_attacked' list of squares. If so, returns True. Otherwise, returns False.
+
+        :param  player  One of the players 'BLUE' or 'RED'
+        :type   player  string
+        """
+        general_square = self._move.get_general_location_for(player.lower())
+        if general_square.get_string_of_square() in self._move.get_attacked_by(player.lower()):
+            return True
+        else:
+            return False
+
+    def _is_checkmate(self, player) -> bool:
+        """
+        Takes a string representing a player, returns a True if player is in checkmate, otherwise returns False.
+
+        :param  player  One of the players 'BLUE' or 'RED'
+        :type   player  string
+        """
+        pass
+
+    def _end_turn(self) -> None:
+        """Ends current player's turn."""
+        if self._turn == 'BLUE':
+            self._turn = 'RED'
+        else:  # self._turn == 'RED'
+            self._turn = 'BLUE'
+
+    def get_turn(self) -> str:
+        """Returns the player whose turn it is to make a move."""
+        return self._turn
+
+
+class Board:
+    """
+    Class representing board comprised of 9x10 squares, where each square is specified using "algebraic notation".
+    There are 9 files (columns) labeled a-i, and 10 rows labeled 1-10. The red side starts on row 1, and the blue side
+    starts on row 10.
+    """
+
+    def __init__(self):
+        """Initializes a Board object. A board is made of of 90 Square objects."""
+        self._squares = []
+        self._files = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8}
+        self._rows = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8, '10': 9}
+
+        self._blue_palace = set()
+        self._red_palace = set()
+        self._palaces = set()
+        self._palace_move_augmenting_squares = {'d8', 'f8', 'e9', 'd10', 'f10'}
+
+        self._starting_positions = {
+            'BLUE': {
+                # 'general': ['e9'],
+                # 'guard': ['d10', 'f10'],
+                # 'horse': ['c10', 'h10'],
+                # 'elephant': ['b10', 'g10'],
+                # 'chariot': ['a10', 'i10'],
+                # 'cannon': ['b8', 'h8'],
+                # 'soldier': ['a7', 'c7', 'e7', 'g7', 'i7']
+                'general': ['e9'],
+                'soldier': ['e3', 'c7', 'e7', 'g7', 'i7']
+            },
+            'RED': {
+                # 'general': ['e2'],
+                # 'guard': ['d1', 'f1'],
+                # 'horse': ['c1', 'h1'],
+                # 'elephant': ['b1', 'g1'],
+                # 'chariot': ['a1', 'i1'],
+                # 'cannon': ['b3', 'h3'],
+                # 'soldier': ['a4', 'c4', 'e4', 'g4', 'i4']
+                'general': ['e2'],
+                'soldier': ['e8', 'c4', 'e4', 'g4', 'i4']
+            }
+        }
         self._setup_squares()
-        self._setup_pieces()
         self._setup_palaces()
+        self._move = Movement(self)
+        self._setup_pieces()
+        self._move.update_attacks('BLUE')
+        self._move.update_attacks('RED')
 
-    def _setup_squares(self):
+    def _setup_squares(self) -> None:
         """
         Instantiates 90 square objects with row and file, and sets pointers to surrounding squares for each square.
         """
@@ -237,21 +267,7 @@ class Board:
             if square.get_file() != 'i' and square.get_row() != '10':
                 square.set_down_right(self._squares[index + 10])
 
-    def _setup_pieces(self):
-        """Places pieces on board based on their starting board positions."""
-        blue_map = self._pieces.get_piece_map_for('BLUE').items()
-        for piece, square_list in blue_map:
-            for square_string in square_list:
-                square_obj = self._get_square_from_string(square_string)
-                square_obj.place_piece(piece)
-
-        red_map = self._pieces.get_piece_map_for('RED').items()
-        for piece, square_list in red_map:
-            for square_string in square_list:
-                square_obj = self._get_square_from_string(square_string)
-                square_obj.place_piece(piece)
-
-    def _setup_palaces(self):
+    def _setup_palaces(self) -> None:
         """
 
         """
@@ -267,7 +283,32 @@ class Board:
 
         self._palaces = self._blue_palace.union(self._red_palace)
 
-    def record_move(self, from_str, to_str):
+    def _setup_pieces(self) -> None:
+        """Places pieces on board based on their starting board positions."""
+        starting_positions = self._starting_positions
+        for player in starting_positions:
+            for piece, square_list in starting_positions[player].items():
+                for square_string in square_list:
+                    if piece == 'general':
+                        piece_obj = General(player)
+                    elif piece == 'guard':
+                        piece_obj = Guard(player)
+                    elif piece == 'horse':
+                        piece_obj = Horse(player)
+                    elif piece == 'elephant':
+                        piece_obj = Elephant(player)
+                    elif piece == 'chariot':
+                        piece_obj = Chariot(player)
+                    elif piece == 'cannon':
+                        piece_obj = Cannon(player)
+                    else:  # piece_obj == 'soldier'
+                        piece_obj = Soldier(player)
+
+                    square_obj = self.get_square_from_string(square_string)
+                    square_obj.place_piece(piece_obj)
+                    self._move.update_piece_location(player, piece_obj, square_obj)
+
+    def record_move(self, from_str, to_str) -> None:
         """
         Finalizes movement of a piece from one square to another.
 
@@ -276,12 +317,12 @@ class Board:
         :param  to_str:  The destination square the moving piece is moving to
         :type   to_str:  string representing algebraic notation of square e.g. 'a1'
         """
-        from_square = self._get_square_from_string(from_str)
-        to_square = self._get_square_from_string(to_str)
+        from_square = self.get_square_from_string(from_str)
+        to_square = self.get_square_from_string(to_str)
         to_square.place_piece(from_square.get_piece())
         from_square.remove_piece()
 
-    def _get_square_from_string(self, square_string):
+    def get_square_from_string(self, square_string: str):
         """
         Takes a string algebraic notation representation of a square, and returns the corresponding square object.
 
@@ -294,7 +335,7 @@ class Board:
         except InvalidSquareError:
             print('Invalid square entered')
 
-    def _get_index_from_string(self, square_string) -> int:
+    def _get_index_from_string(self, square_string: str) -> int:
         """
         Takes a string algebraic notation representation of a square, and returns the corresponding index of the square
         in self._squares.
@@ -316,6 +357,208 @@ class Board:
         index = 9 * self._rows[row] + self._files[file]
         return index
 
+    def get_palace(self, player):
+        """
+
+        :param player:
+        :return:
+        """
+        if player == 'BLUE':
+            return self._blue_palace
+        else:  # player == 'RED'
+            return self._red_palace
+
+    def get_palaces(self):
+        """
+
+        :return:
+        """
+        return self._palaces
+
+    def get_palace_move_augmenting_squares(self):
+        """
+
+        :return:
+        """
+        return self._palace_move_augmenting_squares
+
+    def get_move_object(self):
+        """
+
+        :return:
+        """
+        return self._move
+
+
+class Square:
+    """
+    A class representing a single Square on the game board. Each square has information about its row and file, and
+    the piece on top of the square, if there is one.
+
+    A Square has 8 pointers to surrounding squares, where pointers point to None for edge of board:
+
+    ↖ ↑ ↗
+    ← □ →
+    ↙ ↓ ↘
+    """
+
+    def __init__(self, file, row):
+        """
+        Initializes a Square with file/column and row.
+
+        :param  file:   The file or column of the square e.g. 'a', 'b', 'c', ...
+        :type   file:   string
+        :param  row:    The row of the square e.g. '1', '2', '3', ...
+        :type   row:    string
+        """
+        self._file = file
+        self._row = row
+        self._piece = None
+
+        self._up = None
+        self._up_left = None
+        self._left = None
+        self._down_left = None
+        self._down = None
+        self._down_right = None
+        self._right = None
+        self._up_right = None
+
+    def __str__(self):
+        """
+
+        :return:
+        """
+        if self._piece:
+            return f'{self._piece}'
+        else:
+            return f'     '
+
+    def __repr__(self):
+        """
+
+        :return:
+        """
+        return f'<{self._file}{self._row}>'
+
+    def get_piece(self):
+        """Takes square object, e.g. 'a1', and returns the piece object on that square, otherwise returns None."""
+        return self._piece
+
+    def remove_piece(self):
+        """Clears the square of any pieces."""
+        self._piece = None
+
+    def place_piece(self, piece):
+        """
+        Places a piece in the target square.
+
+        :param  piece:  The piece to set on the square
+        :type   piece:  Piece object (could be any derived class of Piece - e.g. Horse, General, etc.)
+        """
+        self._piece = piece
+
+    def get_string_of_square(self):
+        """Returns a string representation of the coordinates of the square."""
+        return f'{self._file}{self._row}'
+
+    def get_file(self):
+        """Returns the file of the current square."""
+        return self._file
+
+    def get_row(self):
+        """Returns the row of the current square."""
+        return self._row
+
+    def set_up(self, square):
+        """Takes Square object and sets pointer to square immediately above the current square."""
+        self._up = square
+
+    def get_up(self):
+        """Returns Square object for square immediately above the current square."""
+        return self._up
+
+    def set_up_left(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal above-left the current square."""
+        self._up_left = square
+
+    def get_up_left(self):
+        """Returns Square object for square immediately diagonal above-left current square."""
+        return self._up_left
+
+    def set_left(self, square):
+        """Takes Square object and sets pointer to square immediately to the left of current square."""
+        self._left = square
+
+    def get_left(self):
+        """Returns Square object for square immediately to the left of current square."""
+        return self._left
+
+    def set_down_left(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal below-left to current square."""
+        self._down_left = square
+
+    def get_down_left(self):
+        """Returns Square object for square immediately diagonal below-left to current square."""
+        return self._down_left
+
+    def set_down(self, square):
+        """Takes Square object and sets pointer to square immediately below current square."""
+        self._down = square
+
+    def get_down(self):
+        """Returns Square object for square immediately below current square."""
+        return self._down
+
+    def set_down_right(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal below-right current square."""
+        self._down_right = square
+
+    def get_down_right(self):
+        """Returns Square object for square immediately diagonal below-right current square."""
+        return self._down_right
+
+    def set_right(self, square):
+        """Takes Square object and sets pointer to square immediately to the right of current square."""
+        self._right = square
+
+    def get_right(self):
+        """Returns Square object for square immediately to the right of current square."""
+        return self._right
+
+    def set_up_right(self, square):
+        """Takes Square object and sets pointer to square immediately diagonal above-right of current square."""
+        self._up_right = square
+
+    def get_up_right(self):
+        """Returns Square object for square immediately diagonal above-right of current square."""
+        return self._up_right
+
+
+class Movement:
+    """A class representing the location and interaction of game pieces."""
+
+    def __init__(self, board_obj):
+        """Initializes a PieceMap class with starting positions for all pieces for each player."""
+        self._board = board_obj
+        self._attacks = {
+            'BLUE': dict(),
+            'RED': dict()
+        }
+        self._attacked_by = {
+            'BLUE': dict(),
+            'RED': dict()
+        }
+        self._pieces_locations = {
+            'BLUE': dict(),
+            'RED': dict()
+        }
+        self._generals = {
+            'BLUE': self._board.get_square_from_string('e9'),
+            'RED': self._board.get_square_from_string('e2')
+        }
+
+    # TODO: instead of generating moves, see if it is in the player's piece attacks
     def is_valid_move(self, from_str: str, to_str: str, player: str) -> bool:
         """
         Returns True if move is valid, False otherwise. Receives string representation of the 'from' and 'to' square,
@@ -323,8 +566,8 @@ class Board:
         """
         # Validate the squares are only a1 through i10
         try:
-            from_square = self._get_square_from_string(from_str)
-            self._get_square_from_string(to_str)
+            from_square = self._board.get_square_from_string(from_str)
+            self._board.get_square_from_string(to_str)
         except InvalidSquareError:
             print('Invalid Square - enter squares from "a1" to "i10"')
             return False
@@ -344,7 +587,68 @@ class Board:
 
         return to_str in valid_moves
 
-    def _find_piece_movement_destinations(self, square_obj) -> list or None:
+    def update_piece_location(self, player, piece_obj, square_obj):
+        """
+
+        :param player:
+        :param square_obj:
+        :param piece_obj:
+        :return:
+        """
+        if piece_obj.get_type() == 'general':
+            self._generals[player] = square_obj
+        self._pieces_locations[player][piece_obj] = square_obj
+
+    def update_attacks(self, player_turn):
+        """
+
+        :return:
+        """
+        if player_turn == 'BLUE':
+            other_player = 'RED'
+        else:  # player == 'RED'
+            other_player = 'BLUE'
+
+        self._attacks[player_turn] = dict()
+        self._attacked_by[other_player] = dict()
+
+        # update attacks/movable squares for current player's pieces
+        for piece_obj, square_obj in self._pieces_locations[player_turn].items():
+            self._attacks[player_turn][square_obj] = self._find_piece_movement_destinations(square_obj)
+
+            # update map of other player's squares being attacked
+            for possible_destination in self._attacks[player_turn][square_obj]:
+
+                if possible_destination not in self._attacked_by[other_player]:
+                    self._attacked_by[other_player][possible_destination] = {square_obj}
+                else:
+                    self._attacked_by[other_player][possible_destination].add(square_obj)
+
+    def get_general_location_for(self, player) -> Square:
+        """
+
+        :param player:
+        :return:
+        """
+        return self._generals[player]
+
+    def get_attacks(self, player, ) -> dict:
+        """
+
+        :param square_obj:
+        :return:
+        """
+        return self._attacks[player]
+
+    def get_attacked_by(self, player):
+        """
+
+        :param player:
+        :return:
+        """
+        return self._attacked_by[player]
+
+    def _find_piece_movement_destinations(self, square_obj) -> set or None:
         """
         Receives a Square object holding a game piece owned by the player whose turn it is. Returns a list of possible
         destination squares based on the piece's movement, and other pieces on the board (e.g. collision or capture).
@@ -384,7 +688,7 @@ class Board:
 
         return valid_destinations
 
-    def _generate_general_guard_destinations(self, piece_obj, square_obj, player):
+    def _generate_general_guard_destinations(self, piece_obj, square_obj, player) -> set:
         """
 
         :param piece_obj:
@@ -393,13 +697,29 @@ class Board:
         :return:
         """
         valid_destinations = set()
+        diagonal_destinations = set()
 
         for move_list in piece_obj.get_move_map():
             destination_square = self._valid_move_gua_gen(square_obj, 0, move_list, player, piece_obj)
             if destination_square:
                 valid_destinations.add(destination_square)
 
-        valid_destinations = valid_destinations.intersection(self._palaces)
+        # Find valid square destinations (include palace movement augmentation)
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
+
+            move_map = piece_obj.get_palace_move_map()
+            palace_destinations = set()
+
+            for move_list in move_map:
+                destination_square = self._valid_move_sol(square_obj, 0, move_list, player, piece_obj)
+                if destination_square:
+                    palace_destinations.add(destination_square)
+
+            diagonal_destinations = palace_destinations.intersection(self._board.get_palaces())
+
+        valid_destinations = valid_destinations.union(diagonal_destinations)
+        valid_destinations = valid_destinations.intersection(self._board.get_palaces())
+
         return valid_destinations
 
     def _generate_soldier_destinations(self, piece_obj, square_obj, player):
@@ -422,7 +742,7 @@ class Board:
                 valid_destinations.add(destination_square)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._palaces:
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -432,7 +752,7 @@ class Board:
                 if destination_square:
                     palace_destinations.add(destination_square)
 
-            palace_destinations = palace_destinations.intersection(self._palaces)
+            palace_destinations = palace_destinations.intersection(self._board.get_palaces())
 
         return valid_destinations.union(palace_destinations)
 
@@ -456,7 +776,7 @@ class Board:
                 valid_destinations = valid_destinations.union(destination_squares)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._palaces:
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -466,7 +786,7 @@ class Board:
                 if destination_squares:
                     palace_destinations = palace_destinations.union(destination_squares)
 
-            palace_destinations = palace_destinations.intersection(self._palaces)
+            palace_destinations = palace_destinations.intersection(self._board.get_palaces())
 
         return valid_destinations.union(palace_destinations)
 
@@ -490,7 +810,7 @@ class Board:
                 valid_destinations = valid_destinations.union(destination_squares)
 
         # Find valid square destinations (include palace movement augmentation)
-        if square_obj.get_string_of_square() in self._palaces:
+        if square_obj.get_string_of_square() in self._board.get_palace_move_augmenting_squares():
 
             move_map = piece_obj.get_palace_move_map()
             palace_destinations = set()
@@ -500,7 +820,7 @@ class Board:
                 if destination_squares:
                     palace_destinations = palace_destinations.union(destination_squares)
 
-            palace_destinations = palace_destinations.intersection(self._palaces)
+            palace_destinations = palace_destinations.intersection(self._board.get_palaces())
 
         return valid_destinations.union(palace_destinations)
 
@@ -639,61 +959,62 @@ class Board:
         elif next_move == 'up_left':
             return self._valid_move_hor_ele(current_square.get_up_left(), index + 1, move_list, player, piece)
 
-    def _valid_move_cha(self, current_square, direction, player, piece, visited=False):
+    def _valid_move_cha(self, current_square, direction, player, piece, destinations=False):
         """
 
         """
-        # TODO
-        if visited is False:
-            visited = set()
+        # Instantiate the destinations set on first recursive call
+        if destinations is False:
+            destinations = set()
 
         # Base case: out of bounds for board
         if current_square is None:
-            return visited
+            return destinations
 
         # Base case: palace movement out of palace
-        if direction in piece.get_palace_move_map() and current_square.get_string_of_square() not in self._palaces:
+        if (direction in piece.get_palace_move_map() and
+                current_square.get_string_of_square() not in self._board.get_palaces()):
             return
 
         if current_square.get_piece() and current_square.get_piece() is not piece:
 
             # Base case: end of movement -- blocked by ally
             if player == current_square.get_piece().get_player():
-                return visited
+                return destinations
 
             # Base case: end of movement -- enemy piece can be captured
             elif player != current_square.get_piece().get_player():
-                visited.add(current_square.get_string_of_square())
-                return visited
+                destinations.add(current_square.get_string_of_square())
+                return destinations
 
         # Empty space is a valid chariot move
         if not current_square.get_piece():
-            visited.add(current_square.get_string_of_square())
+            destinations.add(current_square.get_string_of_square())
 
         # Recursive case
         if direction == 'left':
-            return self._valid_move_cha(current_square.get_left(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_left(), direction, player, piece, destinations)
 
         elif direction == 'down_left':
-            return self._valid_move_cha(current_square.get_down_left(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_down_left(), direction, player, piece, destinations)
 
         elif direction == 'down':
-            return self._valid_move_cha(current_square.get_down(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_down(), direction, player, piece, destinations)
 
         elif direction == 'down_right':
-            return self._valid_move_cha(current_square.get_down_right(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_down_right(), direction, player, piece, destinations)
 
         elif direction == 'right':
-            return self._valid_move_cha(current_square.get_right(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_right(), direction, player, piece, destinations)
 
         elif direction == 'up_right':
-            return self._valid_move_cha(current_square.get_up_right(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_up_right(), direction, player, piece, destinations)
 
         elif direction == 'up':
-            return self._valid_move_cha(current_square.get_up(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_up(), direction, player, piece, destinations)
 
         elif direction == 'up_left':
-            return self._valid_move_cha(current_square.get_up_left(), direction, player, piece, visited)
+            return self._valid_move_cha(current_square.get_up_left(), direction, player, piece, destinations)
 
     def _valid_move_can(self, current_square, direction, player, piece, destinations=False, pieces_in_path=0):
         """
@@ -713,7 +1034,8 @@ class Board:
             return destinations
 
         # Base case: augmented palace movement is out of palace zone
-        if direction in piece.get_palace_move_map() and current_square.get_string_of_square() not in self._palaces:
+        if (direction in piece.get_palace_move_map() and
+                current_square.get_string_of_square() not in self._board.get_palaces()):
             return destinations
 
         # Before jump, found piece in path
@@ -843,210 +1165,6 @@ class Board:
             return self._valid_move_sol(current_square.get_up_left(), index + 1, move_list, player, piece)
 
 
-class Square:
-    """
-    A class representing a single Square on the game board. Each square has information about its row and file, and
-    the piece on top of the square, if there is one.
-
-    A Square has 8 pointers to surrounding squares, where pointers point to None for edge of board:
-
-    ↖ ↑ ↗
-    ← □ →
-    ↙ ↓ ↘
-    """
-
-    def __init__(self, file, row):
-        """
-        Initializes a Square with file/column and row.
-
-        :param  file:   The file or column of the square e.g. 'a', 'b', 'c', ...
-        :type   file:   string
-        :param  row:    The row of the square e.g. '1', '2', '3', ...
-        :type   row:    string
-        """
-        self._file = file
-        self._row = row
-        self._piece = None
-
-        self._up = None
-        self._up_left = None
-        self._left = None
-        self._down_left = None
-        self._down = None
-        self._down_right = None
-        self._right = None
-        self._up_right = None
-
-    def __str__(self):
-        if self._piece:
-            return f'{self._piece}'
-        else:
-            return f'     '
-
-    def get_piece(self):
-        """Takes square object, e.g. 'a1', and returns the piece object on that square, otherwise returns None."""
-        return self._piece
-
-    def remove_piece(self):
-        """Clears the square of any pieces."""
-        self._piece = None
-
-    def place_piece(self, piece):
-        """
-        Places a piece in the target square.
-
-        :param  piece:  The piece to set on the square
-        :type   piece:  Piece object (could be any derived class of Piece - e.g. Horse, General, etc.)
-        """
-        self._piece = piece
-
-    def get_string_of_square(self):
-        """Returns a string representation of the coordinates of the square."""
-        return f'{self._file}{self._row}'
-
-    def get_file(self):
-        """Returns the file of the current square."""
-        return self._file
-
-    def get_row(self):
-        """Returns the row of the current square."""
-        return self._row
-
-    def set_up(self, square):
-        """Takes Square object and sets pointer to square immediately above the current square."""
-        self._up = square
-
-    def get_up(self):
-        """Returns Square object for square immediately above the current square."""
-        return self._up
-
-    def set_up_left(self, square):
-        """Takes Square object and sets pointer to square immediately diagonal above-left the current square."""
-        self._up_left = square
-
-    def get_up_left(self):
-        """Returns Square object for square immediately diagonal above-left current square."""
-        return self._up_left
-
-    def set_left(self, square):
-        """Takes Square object and sets pointer to square immediately to the left of current square."""
-        self._left = square
-
-    def get_left(self):
-        """Returns Square object for square immediately to the left of current square."""
-        return self._left
-
-    def set_down_left(self, square):
-        """Takes Square object and sets pointer to square immediately diagonal below-left to current square."""
-        self._down_left = square
-
-    def get_down_left(self):
-        """Returns Square object for square immediately diagonal below-left to current square."""
-        return self._down_left
-
-    def set_down(self, square):
-        """Takes Square object and sets pointer to square immediately below current square."""
-        self._down = square
-
-    def get_down(self):
-        """Returns Square object for square immediately below current square."""
-        return self._down
-
-    def set_down_right(self, square):
-        """Takes Square object and sets pointer to square immediately diagonal below-right current square."""
-        self._down_right = square
-
-    def get_down_right(self):
-        """Returns Square object for square immediately diagonal below-right current square."""
-        return self._down_right
-
-    def set_right(self, square):
-        """Takes Square object and sets pointer to square immediately to the right of current square."""
-        self._right = square
-
-    def get_right(self):
-        """Returns Square object for square immediately to the right of current square."""
-        return self._right
-
-    def set_up_right(self, square):
-        """Takes Square object and sets pointer to square immediately diagonal above-right of current square."""
-        self._up_right = square
-
-    def get_up_right(self):
-        """Returns Square object for square immediately diagonal above-right of current square."""
-        return self._up_right
-
-
-class PieceMap:
-    """A class representing the location and interaction of game pieces."""
-
-    def __init__(self):
-        """Initializes a PieceMap class with starting positions for all pieces for each player."""
-        self._blue_map = {
-            General('BLUE'): ['e9'],
-            Guard('BLUE'): ['d10', 'f10'],
-            Horse('BLUE'): ['c10', 'h10'],
-            Elephant('BLUE'): ['b10', 'g10'],
-            Chariot('BLUE'): ['a10', 'i10'],
-            Cannon('BLUE'): ['b8', 'h8'],
-            Soldier('BLUE'): ['a7', 'c7', 'e7', 'g7', 'i7']
-        }
-        self._red_map = {
-            General('RED'): ['e2'],
-            Guard('RED'): ['d1', 'f1'],
-            Horse('RED'): ['c1', 'h1'],
-            Elephant('RED'): ['b1', 'g1'],
-            Chariot('RED'): ['a1', 'i1'],
-            Cannon('RED'): ['b3', 'h3'],
-            Soldier('RED'): ['a4', 'c4', 'e4', 'g4', 'i4']
-        }
-
-        self._blue_locations = []
-        for location_list in self._blue_map.values():
-            self._blue_locations.extend(location_list)
-
-        self._red_locations = []
-        for location_list in self._red_map.values():
-            self._red_locations.extend(location_list)
-
-    def set_piece_at(self, piece, square_to_add):
-        """
-        Takes a piece object and location, adds location for that piece on the PieceMap.
-
-        :param  piece:  The piece whose locations are being updated
-        :type   piece:  Piece object or child of Piece
-        :param  square_to_add:  The new location of a moved piece
-        :type   square_to_add:  Square object
-
-        """
-        pass
-
-    def remove_piece_at(self, piece, square_to_remove):
-        """
-        Takes a piece object and location, removes location for that piece on the PieceMap.
-
-        :param  piece:  The piece whose locations are being updated
-        :type   piece:  Piece object or child of Piece
-        :param  square_to_remove:   The previous location of a moved piece, OR the location of a taken piece
-        :type   square_to_remove:   Square object
-        """
-        pass
-
-    def get_piece_map_for(self, player):
-        """Returns a dictionary where keys are player's pieces and values are their locations."""
-        if player == 'BLUE':
-            return self._blue_map
-        else:  # player == 'RED'
-            return self._red_map
-
-    def get_piece_locations_for(self, player):
-        """Returns a list of all of a player's pieces' locations on the board in algebraic notation."""
-        if player == 'BLUE':
-            return self._blue_locations
-        else:  # player == 'RED'
-            return self._red_locations
-
-
 class Piece:
     """Base class for all game pieces to be derived from."""
 
@@ -1056,6 +1174,13 @@ class Piece:
         self._type = None
         self._move_map = None
         self._palace_move_map = None
+
+    def __repr__(self):
+        """
+
+        :return:
+        """
+        return f'<{self._player} {self._type}>'
 
     def get_player(self):
         """Returns the owning player of this piece."""
@@ -1089,12 +1214,14 @@ class General(Piece):
         self._type = 'general'
         self._move_map = [
             ['up', None],
-            ['up_left', None],
             ['left', None],
-            ['down_left', None],
             ['down', None],
-            ['down_right', None],
             ['right', None],
+        ]
+        self._palace_move_map = [
+            ['up_left', None],
+            ['down_left', None],
+            ['down_right', None],
             ['up_right', None]
         ]
 
@@ -1121,6 +1248,12 @@ class Guard(Piece):
             ['down', None],
             ['down_right', None],
             ['right', None],
+            ['up_right', None]
+        ]
+        self._palace_move_map = [
+            ['up_left', None],
+            ['down_left', None],
+            ['down_right', None],
             ['up_right', None]
         ]
 
@@ -1298,7 +1431,10 @@ class InvalidSquareError(Exception):
 
 
 if __name__ == '__main__':
+    # pass
     game = JanggiGame()
-    # square = game._board.get_square_from_string('d10')
+    # square = game._board._get_square_from_string('d8')
     # piece = square.get_piece()
-    # game._board.generate_cannon_destinations(piece, square, 'BLUE')
+    # square2 = game._board._get_square_from_string('e1')
+    # piece2 = square2.get_piece()
+    # # game._board._generate_general_guard_destinations(piece, square, 'BLUE')
