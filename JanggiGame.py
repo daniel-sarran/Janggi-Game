@@ -117,6 +117,8 @@ class JanggiGame:
         :param to_square    The source square the moving piece is coming from
         :type  to_square    Square object
         """
+        print("Attempting: ", from_square, "->", to_square)
+
         # Check if game is already over
         if self.get_game_state() != 'UNFINISHED':
             return False
