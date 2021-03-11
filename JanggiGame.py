@@ -131,6 +131,9 @@ class JanggiGame:
             return False
 
         # Record move
+        to_square_obj = self._board.get_square_from_string(to_square)
+        piece_obj = self._board.get_square_from_string(from_square).get_piece()
+        self._move.update_piece_location(self._turn, piece_obj, to_square_obj)
         self._board.record_move(from_square, to_square)
 
         # Check / Checkmate
@@ -554,6 +557,10 @@ class Movement:
             'BLUE': self._board.get_square_from_string('e9'),
             'RED': self._board.get_square_from_string('e2')
         }
+        self._in_check = {
+            'BLUE': False,
+            'RED': False
+        }
 
     # TODO: instead of generating moves, see if it is in the player's piece attacks
     def is_valid_move(self, from_str: str, to_str: str, player: str) -> bool:
@@ -579,10 +586,7 @@ class Movement:
         if player != piece.get_player():
             return False
 
-        # Compare 'to' against valid piece destination squares
-        valid_moves = self._find_piece_movement_destinations(from_square)
-
-        return to_str in valid_moves
+        return to_str in self._attacks[player][self._board.get_square_from_string(from_str)]
 
     def update_piece_location(self, player, piece_obj, square_obj):
         """
@@ -644,6 +648,15 @@ class Movement:
         :return:
         """
         return self._attacked_by[player]
+
+    def set_in_check(self, player, boolean):
+        """
+
+        :param boolean:
+        :param player:
+        :return:
+        """
+        self._in_check[player] = boolean
 
     def _find_piece_movement_destinations(self, square_obj) -> set or None:
         """
@@ -1430,6 +1443,7 @@ class InvalidSquareError(Exception):
 if __name__ == '__main__':
     # pass
     game = JanggiGame()
+    game.make_move('c7', 'c6')
     # square = game._board._get_square_from_string('d8')
     # piece = square.get_piece()
     # square2 = game._board._get_square_from_string('e1')
