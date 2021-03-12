@@ -1,25 +1,8 @@
 # Author:       Daniel Sarran
-# Date:         TODO
-# Description:  Korean chess game.
-
-""" TODO LIST
-
-LAST LEFT OFF ON:
-
- - Check & Checkmate
- - Follow general, follow palace squares
-
- Movement:
- - DONE!
-
- Put in "type" for each piece
- Remove move map from each class - moved to base Piece class
- Change blue map to list 'general' instead of the General class
-    Will need to update setup pieces so that if 'general' -> General('BLUE')
- Check logic
- Checkmate logic
-
-"""
+# Date:         03/11/2021
+# Description:  Korean chess game. Features a printable board, moving pieces, captures, and recursive move generation.
+#               To view board (though frankly who has time for that) just type print(game) or just type <game> (w/o
+#               brackets) in console.
 
 BLUE = '\033[94m'
 RED = '\033[91m'
@@ -100,25 +83,17 @@ class JanggiGame:
     def set_game_state(self, state) -> None:
         """
         Takes in a string of current game state, updates game state to that state.
-
-        :param  state    'UNFINISHED', 'BLUE_WON', 'RED_WON'
-        :type   state     string
         """
-        pass
+        if state in {'UNFINISHED', 'RED_WON', 'BLUE_WON'}:
+            self._game_state = state
+        return
 
-    def make_move(self, from_square, to_square) -> bool:
+    def make_move(self, from_square: str, to_square: str) -> bool:
         """
         Takes two string parameters of the square moved from and the square moved to.
         If the move is valid, updates game and piece board. A move to-and-from the same square is processed as a
         "pass" for that player. Checks for 'check' and 'checkmate', and records movement on game board and pieces.
-
-        :param from_square  The source square the moving piece is coming from
-        :type  from_square  Square object
-        :param to_square    The source square the moving piece is coming from
-        :type  to_square    Square object
         """
-        print("game.make_move(" + from_square + ",", to_square + ")")
-
         # Check if game is already over
         if self.get_game_state() != 'UNFINISHED':
             return False
@@ -138,7 +113,7 @@ class JanggiGame:
         if not self._move.is_valid_move(from_square, to_square, player):
             return False
 
-        # Record move
+        # Record move - once to board, and once to piece locations
         to_square_obj = self._board.get_square_from_string(to_square)
         piece_obj = self._board.get_square_from_string(from_square).get_piece()
         self._move.update_piece_location(player, piece_obj, to_square_obj)
@@ -151,16 +126,21 @@ class JanggiGame:
             self._move.update_piece_location(player, piece_obj, from_square_obj)
             self._board.record_move(to_square, from_square)
             return False
+
+        # If moving out of check "undo" check flag
         else:
             self._move.set_in_check(player, False)
 
-        # Check / Checkmate other player
+        # Update all attacks data structure for pieces on both sides, and the attacked squares data structures
         self._move.update_attacks(player)
         self._move.update_attacks(other_player)
+
+        # Check for check on opponent after move, set check flag if so
         if self.is_in_check(other_player):
             self._move.set_in_check(other_player, True)
 
         # Update game state, if necessary
+        # Checkmate not implemented in time
 
         self._end_turn()
         return True
@@ -169,9 +149,6 @@ class JanggiGame:
         """
         Takes a string representing the player. References whether the player's General's square is in the
         '_attacked' list of squares. If so, returns True. Otherwise, returns False.
-
-        :param  player  One of the players 'blue' or 'red'
-        :type   player  string
         """
         general_square = self._move.get_general_location_for(player)
 
@@ -179,12 +156,6 @@ class JanggiGame:
             return True
         else:
             return False
-
-    def _is_checkmate(self, player) -> bool:
-        """
-        Calculates checkmate, returns a boolean value as to whether the passed player has been bested.
-        """
-        pass
 
     def _end_turn(self) -> None:
         """
@@ -205,10 +176,12 @@ class Board:
 
     def __init__(self):
         """Initializes a Board object. A board is made of of 90 Square objects."""
+        # Data members for board creation
         self._squares = []
         self._files = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8}
         self._rows = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8, '10': 9}
 
+        # Data members for reference to palace squares
         self._blue_palace = set()
         self._red_palace = set()
         self._palaces = set()
@@ -216,6 +189,8 @@ class Board:
             'blue': {'d8', 'f8', 'e9', 'd10', 'f10'},
             'red': {'d1', 'f1', 'e2', 'd3', 'f3'}
         }
+
+        # Starting positions of pieces on a board
         self._starting_positions = {
             'blue': {
                 'general': ['e9'],
@@ -236,10 +211,14 @@ class Board:
                 'soldier': ['a4', 'c4', 'e4', 'g4', 'i4']
             }
         }
+
+        # Helper methods to setup board, palace, and Movement class composition
         self._setup_squares()
         self._setup_palaces()
         self._move = Movement(self)
         self._setup_pieces()
+
+        # Instantiate the "attacks" and "attacked" data structures (in Movement class)
         self._move.update_attacks('blue')
         self._move.update_attacks('red')
 
@@ -329,12 +308,7 @@ class Board:
 
     def record_move(self, from_str, to_str) -> None:
         """
-        Finalizes movement of a piece from one square to another.
-
-        :param  from_str: The source square the moving piece is coming from
-        :type   from_str: string representing algebraic notation of square e.g. 'a1'
-        :param  to_str:  The destination square the moving piece is moving to
-        :type   to_str:  string representing algebraic notation of square e.g. 'a1'
+        Finalizes movement of a piece from one square to another on the game board.
         """
         from_square = self.get_square_from_string(from_str)
         to_square = self.get_square_from_string(to_str)
@@ -344,7 +318,7 @@ class Board:
     def _get_index_from_string(self, square_string: str) -> int:
         """
         Takes a string algebraic notation representation of a square, and returns the corresponding index of that square
-        in self._squares.
+        object in self._squares.
         """
         # Not a proper file
         if square_string[0] not in self._files.keys():
@@ -393,7 +367,7 @@ class Board:
 
     def get_move_instance(self):
         """
-        Returns the instance of a Move class.
+        Returns the instance of the Movement class.
         """
         return self._move
 
@@ -403,11 +377,12 @@ class Square:
     A class representing a single Square on the game board. Each square has information about its row and file, and
     the piece on top of the square, if the square currently holds a piece, or None otherwise.
 
-    A Square has 8 pointers to surrounding squares, where pointers point to None for edge of board:
+    A Square has 8 pointers to neighboring squares, where pointers point to None for edge of board, much like a linked
+    list:
 
-    ↖ ↑ ↗
-    ← □ →
-    ↙ ↓ ↘
+        ↖ ↑ ↗
+        ← □ →
+        ↙ ↓ ↘
     """
 
     def __init__(self, file, row):
@@ -924,28 +899,33 @@ class Movement:
         """
         Recursive helper function "walks" through a guard or general move (that is, one square in any direction) to
         determine if the destination square is valid.  Receives the current square, an index for the "step" in the
-        "move list" unique to guards and generals, the player, and the piece object. Returns
+        "move list" unique to guards and generals, the player, and the piece object. Returns a single destination square
+        in algebraic notation if the movement leading up to that destination square is valid (unobstructed, in bounds,
+        etc.) Otherwise, returns None.
 
+        A "move list" is extremely similar to a linked list. The only twist is that the move_list can go to the "next"
+        node in 8 different directions.
         """
         # Base case: out of palace
         if current_square is None:
-            return ''
+            return
 
         # Base case: friendly piece found
         next_move = move_list[index]
 
+        # If it is not the last square in a movement, can be blocked by ally or enemy, but can't be blocked by self
         if current_square.get_piece() and next_move is not None:
             if (player == current_square.get_piece().get_player() and
                     current_square.get_piece() is not piece):
-                return ''
+                return
             elif player != current_square.get_piece().get_player():
-                return ''
+                return
 
         # Base case: end of movement, destination is valid
         if next_move is None:
             if current_square.get_piece():
                 if player == current_square.get_piece().get_player():
-                    return ''
+                    return
                 elif player != current_square.get_piece().get_player():
                     return current_square.get_string_of_square()
             else:
@@ -978,13 +958,15 @@ class Movement:
 
     def _valid_move_hor_ele(self, current_square, index, move_list, player, piece):
         """
+        Recursive helper function "walks" through an elephant or horse move (that is, one square in any direction) to
+        determine if the destination square is valid.  Receives the current square, an index for the "step" in the
+        "move list" unique to guards and generals, the player, and the piece object. Returns a single destination square
+        in algebraic notation if the movement leading up to that destination square is valid (unobstructed, in bounds,
+        etc.) Otherwise, returns an empty string.
 
-        :param current_square:
-        :param index:
-        :param move_list:
-        :param player:
-        :param piece:
-        :return:
+        A "move list" is extremely similar to a linked list. The only twist is that the move_list can go to the "next"
+        node in 8 different directions. For example, one 'Horse' move list is ['up', 'up_left', None] where None marks
+        the end of the movement.
         """
         # Base case: out of bounds for board
         if current_square is None:
@@ -1037,7 +1019,16 @@ class Movement:
 
     def _valid_move_cha(self, current_square, direction, player, piece, destinations=False):
         """
+        Recursive helper function "walks" through a chariot move (that is, one square in any direction) to
+        determine if the destination square is valid.  Receives the current square, an index for the "step" in the
+        "move list" unique to guards and generals, the player, and the piece object. Returns a single destination square
+        in algebraic notation if the movement leading up to that destination square is valid (unobstructed, in bounds,
+        etc.) Otherwise, returns an empty string.
 
+        The chariot move list differs from the others in that it has no 'None' node to signify the end of a movement.
+        Rather a chariot simply has four different directions orthogonally (up, down, left, right) and it traverses
+        outwards from current node, adding valid, unobstructed squares, and 1 captured node along the way to a
+        "destinations" set that is passed with each recursive call.
         """
         # Instantiate the destinations set on first recursive call
         if destinations is False:
@@ -1094,13 +1085,19 @@ class Movement:
 
     def _valid_move_can(self, current_square, direction, player, piece, destinations=False, pieces_in_path=0):
         """
+        Recursive helper function "walks" through a cannon move (that is, one square in any direction) to
+        determine if the destination square is valid.  Receives the current square, an index for the "step" in the
+        "move list" unique to guards and generals, the player, and the piece object. Returns a single destination square
+        in algebraic notation if the movement leading up to that destination square is valid (unobstructed, in bounds,
+        etc.) Otherwise, returns an empty string.
 
-        :param current_square:
-        :param direction:
-        :param player:
-        :param piece:
-        :param pieces_in_path:
-        :return:
+        The cannon move list differs from the others in that it has no 'None' node to signify the end of a movement.
+        Rather a cannon simply has four different directions orthogonally (up, down, left, right) and it traverses
+        outwards from current node, adding valid, unobstructed squares, and 1 captured node along the way to a
+        "destinations" set that is passed with each recursive call. The cannon employs a "jump" mechanic which is
+        signified by a "pieces_in_path" variable. As a piece is found going outwards from the current node, a cannon
+        must encounter one piece prior to, effectively, acting as a chariot (and also cannot capture or jump over other
+        cannons.
         """
         if destinations is False:
             destinations = set()
@@ -1183,13 +1180,15 @@ class Movement:
 
     def _valid_move_sol(self, current_square, index, move_list, player, piece):
         """
+        Recursive helper function "walks" through soldier move (that is, one square in any direction) to
+        determine if the destination square is valid.  Receives the current square, an index for the "step" in the
+        "move list" unique to guards and generals, the player, and the piece object. Returns a single destination square
+        in algebraic notation if the movement leading up to that destination square is valid (unobstructed, in bounds,
+        etc.) Otherwise, returns an empty string.
 
-        :param current_square:
-        :param index:
-        :param move_list:
-        :param player:
-        :param piece:
-        :return:
+        A "move list" is extremely similar to a linked list. The only twist is that the move_list can go to the "next"
+        node in several directions. Of note with soldiers is that the side they play on affects their movement, as they
+        cannot move "backwards".
         """
         # Base case: out of bounds for board
         if current_square is None:
@@ -1242,10 +1241,15 @@ class Movement:
 
 
 class Piece:
-    """Base class for all game pieces to be derived from."""
+    """
+    An abstract base class for all game pieces to be derived from. This class is not actually used directly.
+    """
 
     def __init__(self, player):
-        """Initializes the Piece base class. Stores the owning player as 'blue' or 'red'."""
+        """
+        Initializes the Piece base class. Stores the owning player as 'blue' or 'red'. Get/set methods are packaged
+        into the base class. The remaining data members are initialized in the derived/child classes.
+        """
         self._player = player
         self._type = None
         self._move_map = None
@@ -1253,17 +1257,20 @@ class Piece:
 
     def __repr__(self):
         """
-
-        :return:
+        An internal representation of a Piece defaults to the Player's color and the piece Type.
         """
         return f'<{self._player} {self._type}>'
 
     def get_player(self):
-        """Returns the owning player of this piece."""
+        """
+        Returns the owning player of this piece.
+        """
         return self._player
 
     def get_type(self):
-        """Returns the type data member of this piece."""
+        """
+        Returns the type data member of this piece.
+        """
         return self._type
 
     def get_move_map(self):
@@ -1275,17 +1282,21 @@ class Piece:
 
     def get_palace_move_map(self):
         """
-
-        :return:
+        Returns the possible movements of a Janggi piece if the palace augments their movement to include diagonal
+        movement otherwise not possible outside the palace.
         """
         return self._palace_move_map
 
 
 class General(Piece):
-    """A class representing the General."""
+    """
+    A class representing the General.
+    """
 
     def __init__(self, player):
-        """Initializes a General and its movement mechanism."""
+        """
+        Initializes a General and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'general'
         self._move_map = [
@@ -1302,7 +1313,9 @@ class General(Piece):
         ]
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE}★GEN★' + END_COLOR
         else:
@@ -1310,10 +1323,14 @@ class General(Piece):
 
 
 class Guard(Piece):
-    """A class representing a Guard."""
+    """
+    A class representing a Guard.
+    """
 
     def __init__(self, player):
-        """Initializes a Guard and its movement mechanism."""
+        """
+        Initializes a Guard and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'guard'
         self._move_map = [
@@ -1334,7 +1351,9 @@ class Guard(Piece):
         ]
 
     def __str__(self):
-        """String representation of a guard for board printout."""
+        """
+        String representation of a guard for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE}GUARD' + END_COLOR
         else:
@@ -1342,10 +1361,14 @@ class Guard(Piece):
 
 
 class Horse(Piece):
-    """A class representing a Horse."""
+    """
+    A class representing a Horse.
+    """
 
     def __init__(self, player):
-        """Initializes a Horse and its movement mechanism."""
+        """
+        Initializes a Horse and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'horse'
         self._move_map = [
@@ -1360,7 +1383,9 @@ class Horse(Piece):
         ]
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE}HORSE' + END_COLOR
         else:
@@ -1368,10 +1393,14 @@ class Horse(Piece):
 
 
 class Elephant(Piece):
-    """A class representing an elephant."""
+    """
+    A class representing an elephant.
+    """
 
     def __init__(self, player):
-        """Initializes an Elephant and its movement mechanism."""
+        """
+        Initializes an Elephant and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'elephant'
         self._move_map = [
@@ -1386,7 +1415,9 @@ class Elephant(Piece):
         ]
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE} ELE ' + END_COLOR
         else:
@@ -1394,10 +1425,14 @@ class Elephant(Piece):
 
 
 class Chariot(Piece):
-    """A class representing a Chariot."""
+    """
+    A class representing a Chariot.
+    """
 
     def __init__(self, player):
-        """Initializes a Chariot and its movement mechanism."""
+        """
+        Initializes a Chariot and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'chariot'
         self._move_map = [
@@ -1414,7 +1449,9 @@ class Chariot(Piece):
         ]
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE} CHA ' + END_COLOR
         else:
@@ -1422,10 +1459,14 @@ class Chariot(Piece):
 
 
 class Cannon(Piece):
-    """A class representing a Cannon."""
+    """
+    A class representing a Cannon.
+    """
 
     def __init__(self, player):
-        """Initializes a Cannon and its movement mechanism."""
+        """
+        Initializes a Cannon and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'cannon'
         self._move_map = [
@@ -1442,7 +1483,9 @@ class Cannon(Piece):
         ]
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE} CAN ' + END_COLOR
         else:
@@ -1450,10 +1493,14 @@ class Cannon(Piece):
 
 
 class Soldier(Piece):
-    """A class representing a Soldier."""
+    """
+    A class representing a Soldier.
+    """
 
     def __init__(self, player):
-        """Initializes a Soldier and its movement mechanism."""
+        """
+        Initializes a Soldier and its movement mechanism.
+        """
         super().__init__(player)
         self._type = 'soldier'
         self._move_map = {
@@ -1480,7 +1527,9 @@ class Soldier(Piece):
         }
 
     def __str__(self):
-        """String representation of a general for board printout."""
+        """
+        String representation of a general for board printout.
+        """
         if self._player == 'blue':
             return f'{BLUE} SOL ' + END_COLOR
         else:
@@ -1502,28 +1551,12 @@ class Soldier(Piece):
 
 
 class InvalidSquareError(Exception):
-    """Exception that gets thrown when an invalid square string representation is passed."""
+    """
+    Exception that gets thrown when an invalid square string representation is passed. For example, the square 'x5' or
+    '1234' are invalid, whereas 'a1' through 'i10' are valid.
+    """
     pass
 
 
 if __name__ == '__main__':
-    # pass
     game = JanggiGame()
-    game.make_move('c7', 'c6')
-    game.make_move('c1', 'd3')
-    game.make_move('b10', 'd7')
-    game.make_move('b3', 'e3')
-    game.make_move('c10', 'd8')
-    game.make_move('h1', 'g3')
-    game.make_move('e7', 'e6')
-    game.make_move('e3', 'e6')
-    game.make_move('h8', 'c8')
-    game.make_move('d3', 'e5')
-    game.make_move('c8', 'c4')
-    game.make_move('e5', 'c4')
-    game.make_move('i10', 'i8')
-    game.make_move('g4', 'f4')
-    game.make_move('i8', 'f8')
-    game.make_move('g3', 'h5')
-    game.make_move('h10', 'g8')
-    game.make_move('e6', 'e3')
