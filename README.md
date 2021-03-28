@@ -5,10 +5,11 @@ Never heard of Janggi? That's alright! (You could check out this <a href="https:
 
 Objective: each player is trying to put the opposing General ('King') into checkmate!
 
-This implementation handles all movement logic of each piece, including passing, capturing, blocking, check, etc. There are two players: Blue and Red, where Blue starts.
+This implementation handles all movement logic of each piece, including passing, capturing, blocking, check, etc. 
 
 ### User interface
-The user interface is quite simple:
+The user interface is quite simple, there are two players who alternate turns: Blue and Red, where Blue starts. Each player makes a move until one of the players cannot.
+
 1) Create a `JanggiGame` class
 2) Use the `make_move` method and pass the `from` and `to` square using algebraic notation (e.g. 'a1' or 'd10') -- if the move is valid, `make_move` returns True, and `False` otherwise.
 3) Continue until one player wins!
