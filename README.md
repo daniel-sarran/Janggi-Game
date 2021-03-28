@@ -14,9 +14,9 @@ The user interface is quite simple:
 3) Continue until one player wins!
 
 ### Sample driver code
-`game = JanggiGame()`
-`game.make_move('a7', 'a6') # Blue player moves`
-`game.make_move('c1', 'd3') # Red player moves`
+`game = JanggiGame()`<br>
+`game.make_move('a7', 'a6') # Blue player moves`<br>
+`game.make_move('c1', 'd3') # Red player moves`<br>
 
 
 <img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
