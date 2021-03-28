@@ -19,10 +19,8 @@ The user interface is quite simple:
 
 ### Sample driver code
 `game = JanggiGame()`
-  
 `game.make_move('a7', 'a6') # Blue player moves`
-
 `game.make_move('c1', 'd3') # Red player moves`
 
-<img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
 
+<img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
