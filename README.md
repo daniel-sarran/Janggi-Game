@@ -15,10 +15,10 @@ The user interface is quite simple, there are two players who alternate turns: B
 3) Continue until one player wins!
 
 ### Sample driver code
-`game = JanggiGame()`<br>
-`game.make_move('a7', 'a6') # Blue player moves`<br>
-`game.make_move('c1', 'd3') # Red player moves`<br>
-`... # Subsequent moves`
+game = JanggiGame()<br>
+game.make_move('a7', 'a6') \# Blue player moves<br>
+game.make_move('c1', 'd3') \# Red player moves<br>
+... \# Subsequent moves
 
 
 <img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
