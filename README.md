@@ -1,7 +1,7 @@
 # Janggi-Game
 JanggiGame.py is a backend implementation of the Korean board game, Janggi!
 
-Never heard of Janggi? That's alright! 
+Never heard of Janggi? That's alright! (You could check out this <a href="https://en.wikipedia.org/wiki/Janggi">Wikipedia</a> page for more information)
 
 It's <i>mostly</i> like Chess, in the same way a crepe is <i>mostly</i> like a pancake.
 
@@ -14,4 +14,5 @@ The user interface is quite simple:
 2) Use the `make_move` method and pass the `from` and `to` square using algebraic notation (e.g. 'a1' or 'd10')
 3) Continue until one player wins!
 
-<img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/images/Low_Level_IO.PNG" width="600">
+<img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
+
