@@ -16,11 +16,11 @@ The user interface is quite simple:
 2) Use the `make_move` method and pass the `from` and `to` square using algebraic notation (e.g. 'a1' or 'd10') -- if the move is valid, `make_move` returns True, and `False` otherwise.
 3) Continue until one player wins!
 
-<code>game = JanggiGame()
+`game = JanggiGame()
   
 game.make_move('a7', 'a6') # Blue player moves
 
-game.make_move('c1', 'd3') # Red player moves
+game.make_move('c1', 'd3') # Red player moves`
 
 <img src="https://github.com/daniel-sarran/Janggi-Game/blob/main/Janggi_Screenshot.png" width="600">
 
