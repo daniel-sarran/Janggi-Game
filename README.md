@@ -11,11 +11,13 @@ Nonetheless, each player is trying to put the opposing General ('King') into che
 
 This implementation handles all movement logic of each piece, including passing, capturing, blocking, check, etc. There are two players: Blue and Red, where Blue starts.
 
+### User interface
 The user interface is quite simple:
 1) Create a `JanggiGame` class
 2) Use the `make_move` method and pass the `from` and `to` square using algebraic notation (e.g. 'a1' or 'd10') -- if the move is valid, `make_move` returns True, and `False` otherwise.
 3) Continue until one player wins!
 
+### Sample driver code
 `game = JanggiGame()`
   
 `game.make_move('a7', 'a6') # Blue player moves`
