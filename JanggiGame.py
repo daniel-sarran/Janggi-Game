@@ -1,9 +1,6 @@
-# Author:       Daniel Sarran
-# Date:         03/11/2021
-# Description:  Korean chess game. Features a printable board, moving pieces, captures, and recursive move generation.
-#               To view board (though frankly who has time for that) just type print(game) or just type <game> (w/o
-#               brackets) in console.
+#!/usr/bin/env python3
 
+# Color Constants for board printing
 BLUE = '\033[94m'
 RED = '\033[91m'
 END_COLOR = '\033[0m'
