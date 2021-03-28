@@ -1,7 +1,7 @@
 # Janggi-Game
 JanggiGame.py is a backend implementation of the Korean board game, Janggi!
 
-Never heard of Janggi? That's alright! (You could check out this <a href="https://en.wikipedia.org/wiki/Janggi">Wikipedia</a> page for more information) It's <i>mostly</i> like Western Chess, in the same way a crepe is <i>mostly</i> like a pancake. There are some subtle differences in terms of how the pieces move, the ability of players to <i>pass</i>, and a special movement area of the game board called "the palace". 
+Never heard of Janggi? That's alright! (You could check out this <a href="https://en.wikipedia.org/wiki/Janggi">Wikipedia</a> page for more information) It's <i>mostly</i> like Western Chess, in the same way a crepe is <i>mostly</i> like a pancake. There are some subtle differences in terms of how the pieces move, the ability of players to <i>pass</i>, and a special movement area of the game board called "the palace" -- but at the end of the day we have milk, eggs, and flour making a doughy disk.
 
 Objective: each player is trying to put the opposing General ('King') into checkmate!
 
